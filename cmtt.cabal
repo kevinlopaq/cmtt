@@ -20,6 +20,13 @@ executable cmtt
   main-is:             Main.hs
   -- other-modules:
   -- other-extensions:
-  build-depends:       base >=4.13 && <4.14
+  build-depends:       base, containers
   -- hs-source-dirs:
   default-language:    Haskell2010
+
+test-suite evaluator_tests
+  type: exitcode-stdio-1.0
+  main-is: EvaluatorTest.hs
+  build-depends: base, HUnit, lambda
+  hs-source-dirs: tests
+
