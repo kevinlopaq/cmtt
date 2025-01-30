@@ -1,0 +1,11 @@
+# Ignore cabal-generated directories
+/dist-newstyle
+
+# Ignore the .ghc environment
+*.hi
+*.o
+*.prof
+*.hie
+
+Setup.hs
+CHANGELOG.md
