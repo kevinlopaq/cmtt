@@ -9,7 +9,7 @@ data Error
     | TypeMismatch { expected :: Type, actual :: Type }
     | NotAFunctionType Type 
     | UnknownError String 
-    deriving (Show)
+    deriving (Show, Eq)
 
 check :: Ctx -> Term -> Type -> Either Error ()
 check ctx (Lam x e) (Arrow t1 t2) = check ((x, t1) : ctx) e t2 
