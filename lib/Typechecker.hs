@@ -17,7 +17,7 @@ check ctx e ty = do
     inferred <- synth ctx e 
     if inferred == ty 
         then return ()
-        else Left (TypeMismatch ty inferred)
+        else Left (TypeMismatch { expected = ty, actual = inferred})
 
 synth :: Ctx -> Term -> Either Error Type
 synth ctx (Var x) = 
@@ -27,6 +27,7 @@ synth ctx (Var x) =
 synth _ Unit = Right UnitTy
 synth _ TrueT = Right BoolTy
 synth _ FalseT = Right BoolTy
+synth _ (IntT n) = Right IntTy
 synth ctx (App e1 e2) = do 
     t <- synth ctx e1 
     case t of 
@@ -35,4 +36,4 @@ synth ctx (App e1 e2) = do
 synth ctx (Ann e ty) = do 
     check ctx e ty 
     return ty
-synth _ _  = Left (UnknownError "Unexpected term. Maybe you're missing some annotations :)")
+synth _ term  = Left (UnknownError $ "Could not inferr a type for the provided term: " ++ show term)
