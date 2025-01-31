@@ -140,8 +140,7 @@ arg20 = Lam "x" (Var "x")
 ctx20 = []
 result20 = synth ctx20 arg20
 expected20 = Left (UnknownError "Could not inferr a type for the provided term: Lam \"x\" (Var \"x\")")
-test20 = TestCase (assertEqual "21. Inferring type for unannotated lambda should fail" result20 expected20)
-
+test20 = TestCase (assertEqual "20. Inferring type for unannotated lambda should fail" result20 expected20)
 
 tests :: Test
 tests = TestList [
