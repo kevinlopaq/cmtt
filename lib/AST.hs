@@ -1,15 +1,21 @@
 module AST where
 
+import Data.List (elemIndex)
+
+type Ctx = [(String, Type)]
+
 -- Types
 data Type 
-    = UnitTy
+    = BaseTy String
+    | UnitTy
     | Empty
     | IntTy
     | BoolTy
     | Arrow Type Type
+    | BoxTy Ctx Type
     deriving (Show, Eq) 
 
--- Named terms
+-- Terms
 data Term
     = Unit
     | Var String
@@ -19,4 +25,5 @@ data Term
     | App Term Term
     | Lam String Term
     | Ann Term Type
+    | Box Ctx Term
     deriving (Show, Eq)

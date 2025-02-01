@@ -2,8 +2,6 @@ module Typechecker where
 
 import AST
 
-type Ctx = [(String, Type)]
-
 data Error
     = UnboundVariable String
     | TypeMismatch { expected :: Type, actual :: Type }

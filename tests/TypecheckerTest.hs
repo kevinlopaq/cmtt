@@ -1,7 +1,8 @@
 import Test.HUnit
-import qualified System.Exit as Exit
+import System.Exit (exitFailure, exitSuccess)
 import Typechecker 
 import AST
+
 -- Variable found in context: the variable 'x' is in the context with type IntTy
 arg1 = Var "x"
 ctx1 = [("x", IntTy)]
@@ -142,6 +143,14 @@ result20 = synth ctx20 arg20
 expected20 = Left (UnknownError "Could not inferr a type for the provided term: Lam \"x\" (Var \"x\")")
 test20 = TestCase (assertEqual "20. Inferring type for unannotated lambda should fail" result20 expected20)
 
+-- Lambda with unspecified base types
+arg21 = Ann (Lam "x" (Var "x")) (Arrow (BaseTy "A") (BaseTy "A"))
+ctx21 = []
+result21 = synth ctx21 arg21
+expected21 = Right (Arrow (BaseTy "A") (BaseTy "A"))
+test21 = TestCase (assertEqual "21. Inferring type for lambda annotated with unspecified base types" result21 expected21)
+
+
 tests :: Test
 tests = TestList [
     TestLabel "Variable found in context" test1, 
@@ -163,10 +172,11 @@ tests = TestList [
     TestLabel "Annotated integer should check correctly" test17,
     TestLabel "Annotated integer with wrong type should fail" test18,
     TestLabel "Applying curried function to int" test19,
-    TestLabel "Inferring type for unannotated lambda should fail" test20
+    TestLabel "Inferring type for unannotated lambda should fail" test20,
+    TestLabel "Inferring type for lambda annotated with unspecified base types" test21
     ]
 
 main :: IO ()
 main = do
         result <- runTestTT tests
-        if failures result > 0 then Exit.exitFailure else Exit.exitSuccess
+        if failures result > 0 then exitFailure else exitSuccess
