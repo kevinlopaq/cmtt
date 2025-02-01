@@ -134,13 +134,13 @@ arg19 = App  (Ann (Lam "x" (Lam "y" (Var "y"))) (Arrow IntTy (Arrow BoolTy BoolT
 ctx19 = []
 result19 = synth ctx19 arg19
 expected19 = Right (Arrow BoolTy BoolTy)
-test19 = TestCase (assertEqual "19. Applying curried function to int" result19 expected19)
+test19 = TestCase (assertEqual "19. Applying function to int" result19 expected19)
 
 -- Synthesizing an unannotated lambda
 arg20 = Lam "x" (Var "x")
 ctx20 = []
 result20 = synth ctx20 arg20
-expected20 = Left (UnknownError "Could not inferr a type for the provided term: Lam \"x\" (Var \"x\")")
+expected20 = Left (TypingError "Could not inferr a type for the provided term: Lam \"x\" (Var \"x\")")
 test20 = TestCase (assertEqual "20. Inferring type for unannotated lambda should fail" result20 expected20)
 
 -- Lambda with unspecified base types
@@ -149,6 +149,13 @@ ctx21 = []
 result21 = synth ctx21 arg21
 expected21 = Right (Arrow (BaseTy "A") (BaseTy "A"))
 test21 = TestCase (assertEqual "21. Inferring type for lambda annotated with unspecified base types" result21 expected21)
+
+-- Checking lambda against non-arrow type
+arg22 = Lam "x" (Var "x")
+ctx22 = []
+result22 = check ctx22 arg22 (IntTy)
+expected22 = Left (NotAFunctionType IntTy)
+test22 = TestCase (assertEqual "22. Checking lambda against non-arrow type should fail" result22 expected22)
 
 
 tests :: Test
@@ -173,7 +180,8 @@ tests = TestList [
     TestLabel "Annotated integer with wrong type should fail" test18,
     TestLabel "Applying curried function to int" test19,
     TestLabel "Inferring type for unannotated lambda should fail" test20,
-    TestLabel "Inferring type for lambda annotated with unspecified base types" test21
+    TestLabel "Inferring type for lambda annotated with unspecified base types" test21,
+    TestLabel "Checking lambda against non-arrow type" test22
     ]
 
 main :: IO ()

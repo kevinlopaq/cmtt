@@ -5,12 +5,22 @@ import AST
 data Error
     = UnboundVariable String
     | TypeMismatch { expected :: Type, actual :: Type }
-    | NotAFunctionType Type 
-    | UnknownError String 
+    | NotAFunctionType Type
+    | NotAProductType Type
+    | NotABoxType Type
+    | TypingError String -- general error
     deriving (Show, Eq)
 
 check :: Ctx -> Term -> Type -> Either Error ()
-check ctx (Lam x e) (Arrow t1 t2) = check ((x, t1) : ctx) e t2 
+check ctx (Lam x e) t = 
+    case t of 
+        Arrow t1 t2 -> check ((x, t1) : ctx) e t2
+        _ -> Left (NotAFunctionType t)
+check ctx (Pair e1 e2) t =
+    case t of
+        Prod t1 t2 -> check ctx e1 t1 >> check ctx e2 t2
+        _ -> Left (NotAProductType t)
+check ctx (Box psi e) (BoxTy psi' ty) = check psi e ty  
 check ctx e ty = do
     inferred <- synth ctx e 
     if inferred == ty 
@@ -31,7 +41,17 @@ synth ctx (App e1 e2) = do
     case t of 
         Arrow t1 t2 -> check ctx e2 t1 >> return t2
         _ -> Left (NotAFunctionType t)    
+synth ctx (Fst e) = do
+    t <- synth ctx e
+    case t of 
+        Prod t1 _ -> return t1
+        _ -> Left (NotAProductType t)
+synth ctx (Snd e) = do
+    t <- synth ctx e
+    case t of 
+        Prod _ t2 -> return t2
+        _ -> Left (NotAProductType t)
 synth ctx (Ann e ty) = do 
     check ctx e ty 
     return ty
-synth _ term  = Left (UnknownError $ "Could not inferr a type for the provided term: " ++ show term)
+synth _ term  = Left (TypingError $ "Could not inferr a type for the provided term: " ++ show term)

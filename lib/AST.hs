@@ -1,7 +1,5 @@
 module AST where
 
-import Data.List (elemIndex)
-
 type Ctx = [(String, Type)]
 
 -- Types
@@ -12,6 +10,7 @@ data Type
     | IntTy
     | BoolTy
     | Arrow Type Type
+    | Prod Type Type
     | BoxTy Ctx Type
     deriving (Show, Eq) 
 
@@ -24,6 +23,9 @@ data Term
     | IntT Int
     | App Term Term
     | Lam String Term
+    | Pair Term Term
+    | Fst Term 
+    | Snd Term
     | Ann Term Type
     | Box Ctx Term
     deriving (Show, Eq)
