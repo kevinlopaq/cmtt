@@ -26,6 +26,14 @@ data Term
     | Pair Term Term
     | Fst Term 
     | Snd Term
+    | BinOp Op Term Term
     | Ann Term Type
     | Box Ctx Term
+    deriving (Show, Eq)
+
+data Op 
+    = Add 
+    | Sub 
+    | Mul 
+    | Div
     deriving (Show, Eq)

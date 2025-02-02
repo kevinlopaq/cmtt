@@ -51,6 +51,7 @@ synth ctx (Snd e) = do
     case t of 
         Prod _ t2 -> return t2
         _ -> Left (NotAProductType t)
+synth ctx (BinOp op e1 e2) = check ctx e1 IntTy >> check ctx e2 IntTy >> return IntTy
 synth ctx (Ann e ty) = do 
     check ctx e ty 
     return ty

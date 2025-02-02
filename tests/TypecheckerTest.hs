@@ -195,6 +195,34 @@ result26 = check ctx26 arg26 (Prod BoolTy IntTy)
 expected26 = Left (TypeMismatch {expected = BoolTy, actual = IntTy})
 test26 = TestCase (assertEqual "26. Pair (42, true) should not check against bool × int" result26 expected26)
 
+-- Checking addition: 40 + 2 should synthesize type int
+arg27 = BinOp Add (IntT 40) (IntT 2)
+ctx27 = []
+result27 = synth ctx27 arg27
+expected27 = Right IntTy
+test27 = TestCase (assertEqual "27. Checking addition should synthesize type int" result27 expected27)
+
+-- Checking addition with a boolean: should fail
+arg28 = BinOp Add (IntT 10) TrueT
+ctx28 = []
+result28 = synth ctx28 arg28
+expected28 = Left (TypeMismatch {expected = IntTy, actual = BoolTy})
+test28 = TestCase (assertEqual "28. Addition with a boolean should fail" result28 expected28)
+
+-- Checking λx.λy. x + y against int → (int → int) should succeed
+arg29 = Ann (Lam "x" (Lam "y" (BinOp Add (Var "x") (Var "y")))) (Arrow IntTy (Arrow IntTy IntTy))
+ctx29 = []
+result29 = synth ctx29 arg29
+expected29 = Right (Arrow IntTy (Arrow IntTy IntTy))
+test29 = TestCase (assertEqual "29. Addition inside lambdas" result29 expected29)
+
+-- Checking λx.λy. x + y against int → (int → bool) should fail
+arg30 = Ann (Lam "x" (Lam "y" (BinOp Add (Var "x") (Var "y")))) (Arrow IntTy (Arrow IntTy BoolTy))
+ctx30 = []
+result30 = synth ctx30 arg30
+expected30 = Left (TypeMismatch {expected = BoolTy, actual = IntTy})
+test30 = TestCase (assertEqual "30. Checking addition inside lambdas against incorrect type" result30 expected30)
+
 tests = TestList [
                     test0, 
                     test1, 
@@ -222,7 +250,11 @@ tests = TestList [
                     test23, 
                     test24, 
                     test25, 
-                    test26
+                    test26,
+                    test27,
+                    test28,
+                    test29,
+                    test30
                 ]
 
 main :: IO ()
