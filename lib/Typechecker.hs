@@ -1,6 +1,8 @@
 module Typechecker where 
 
-import AST
+import Syntax
+import Control.Monad (unless)
+import Data.Maybe (maybe)
 
 data Error
     = UnboundVariable String
@@ -23,15 +25,10 @@ check ctx (Pair e1 e2) t =
 check ctx (Box psi e) (BoxTy psi' ty) = check psi e ty  
 check ctx e ty = do
     inferred <- synth ctx e 
-    if inferred == ty 
-        then return ()
-        else Left (TypeMismatch { expected = ty, actual = inferred})
+    unless (inferred == ty) $ Left (TypeMismatch { expected = ty, actual = inferred})
 
 synth :: Ctx -> Term -> Either Error Type
-synth ctx (Var x) = 
-    case lookup x ctx of
-        Just ty -> Right ty
-        Nothing -> Left (UnboundVariable x)
+synth ctx (Var x) = maybe (Left (UnboundVariable x)) Right (lookup x ctx)
 synth _ Unit = Right UnitTy
 synth _ TrueT = Right BoolTy
 synth _ FalseT = Right BoolTy
@@ -52,7 +49,5 @@ synth ctx (Snd e) = do
         Prod _ t2 -> return t2
         _ -> Left (NotAProductType t)
 synth ctx (BinOp op e1 e2) = check ctx e1 IntTy >> check ctx e2 IntTy >> return IntTy
-synth ctx (Ann e ty) = do 
-    check ctx e ty 
-    return ty
+synth ctx (Ann e ty) = ty <$ check ctx e ty
 synth _ term  = Left (TypingError $ "Could not inferr a type for the provided term: " ++ show term)

@@ -1,8 +1,11 @@
-module AST where
+module Syntax where
 
 type Ctx = [(String, Type)]
+type ModCtx = [(String, Ctx, Type)]
 
--- Types
+eqCtx :: Ctx -> Ctx -> Bool
+eqCtx ctx1 ctx2 = map snd ctx1 == map snd ctx2
+
 data Type 
     = BaseTy String
     | UnitTy
@@ -14,7 +17,6 @@ data Type
     | BoxTy Ctx Type
     deriving (Show, Eq) 
 
--- Terms
 data Term
     = Unit
     | Var String
@@ -37,3 +39,4 @@ data Op
     | Mul 
     | Div
     deriving (Show, Eq)
+

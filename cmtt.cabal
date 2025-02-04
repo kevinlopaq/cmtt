@@ -26,7 +26,7 @@ executable cmtt
 
 library 
   hs-source-dirs: lib
-  exposed-modules: Typechecker, AST
+  exposed-modules: Typechecker, Syntax
   build-depends: base
 
 test-suite typechecker_tests
