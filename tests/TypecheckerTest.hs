@@ -223,6 +223,22 @@ result30 = synth [] ctx30 arg30
 expected30 = Left (TypeMismatch {expected = BoolTy, actual = IntTy})
 test30 = TestCase (assertEqual "30. Checking addition inside lambdas against incorrect type" result30 expected30)
 
+-- Checking box x:int, y:int. (x + y) against [x:int, y:int]int should succeed
+arg31 = Box [("x", IntTy), ("y", IntTy)] (BinOp Add (Var "x") (Var "y"))
+ctx31 = []
+modCtx31 = [] 
+result31 = check modCtx31 ctx31 arg31 (BoxTy [("x", IntTy), ("y", IntTy)] IntTy)
+expected31 = Right ()
+test31 = TestCase (assertEqual "31. Checking box type with value variables in context should succeed" result31 expected31)
+
+-- Checking λz. box x:int, y:int. (x + y + z) against int → [x:int, y:int]int should fail
+arg32 = Lam "z" (Box [("x", IntTy), ("y", IntTy)] (BinOp Add (BinOp Add (Var "x") (Var "y")) (Var "z")))
+ctx32 = []
+modCtx32 = [] 
+result32 = check modCtx32 ctx32 arg32 (Arrow (IntTy) (BoxTy [("x", IntTy), ("y", IntTy)] IntTy))
+expected32 = Left (UnboundVariable "z")
+test32 = TestCase (assertEqual "32. Checking box type with value variables not in context should fail" result32 expected32)
+
 tests = TestList [
                     test0, 
                     test1, 
@@ -254,7 +270,9 @@ tests = TestList [
                     test27,
                     test28,
                     test29,
-                    test30
+                    test30,
+                    test31,
+                    test32
                 ]
 
 main :: IO ()
