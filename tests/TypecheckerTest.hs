@@ -239,6 +239,30 @@ result32 = check modCtx32 ctx32 arg32 (Arrow (IntTy) (BoxTy [("x", IntTy), ("y",
 expected32 = Left (UnboundVariable "z")
 test32 = TestCase (assertEqual "32. Checking box type with value variables not in context should fail" result32 expected32)
 
+-- Checking λx. let box u' = x in u' against  []A → A should succeed
+arg33 = Lam "x" (LetBox "u'" (Var "x") (ModVar "u'" []))
+ctx33 = []
+modCtx33 = [] 
+result33 = check modCtx33 ctx33 arg33 (Arrow (BoxTy [] (BaseTy "A")) (BaseTy "A")) 
+expected33 = Right ()
+test33 = TestCase (assertEqual "33. Checking type of axiom T" result33 expected33)
+
+-- Checking let box u = box x:int, y:int. (x + y) in u⟨x→5, y→2⟩ against int 
+arg34 = LetBox "u" (Ann (Box [("x", IntTy), ("y", IntTy)] (BinOp Add (Var "x") (Var "y"))) (BoxTy [("x", IntTy), ("y", IntTy)] IntTy)) (ModVar "u" [("x", IntT 5), ("y", IntT 2)])
+ctx34 = []
+modCtx34 = [] 
+result34 = check modCtx34 ctx34 arg34 IntTy
+expected34 = Right ()
+test34 = TestCase (assertEqual "34. Checking modal program evaluating to int" result34 expected34)
+
+-- Checking let box u = box x:int, y:int. (x + y) in u⟨x→5, y→2⟩ against [] int 
+arg35 = LetBox "u" (Ann (Box [("x", IntTy), ("y", IntTy)] (BinOp Add (Var "x") (Var "y"))) (BoxTy [("x", IntTy), ("y", IntTy)] IntTy)) (Box [] (ModVar "u" [("x", IntT 5), ("y", IntT 2)]))
+ctx35 = []
+modCtx35 = [] 
+result35 = check modCtx35 ctx35 arg35 (BoxTy [] IntTy)
+expected35 = Right ()
+test35 = TestCase (assertEqual "35. Checking modal program evaluating to int" result35 expected35)
+
 tests = TestList [
                     test0, 
                     test1, 
@@ -272,7 +296,10 @@ tests = TestList [
                     test29,
                     test30,
                     test31,
-                    test32
+                    test32,
+                    test33,
+                    test34,
+                    test35
                 ]
 
 main :: IO ()
