@@ -1,53 +1,79 @@
 module Typechecker where 
 
 import Syntax
-import Control.Monad (unless)
-import Data.Maybe (maybe)
+import Control.Monad (unless, guard)
 
 data Error
     = UnboundVariable String
+    | UnboundModalVariable String
     | TypeMismatch { expected :: Type, actual :: Type }
     | NotAFunctionType Type
     | NotAProductType Type
     | NotABoxType Type
+    | DifferentContexts Ctx Ctx
+    | SubstitutionLengthMismatch 
     | TypingError String -- general error
     deriving (Show, Eq)
 
-check :: Ctx -> Term -> Type -> Either Error ()
-check ctx (Lam x e) t = 
+check :: ModCtx -> Ctx -> Term -> Type -> Either Error ()
+check modCtx ctx (Lam x e) t = 
     case t of 
-        Arrow t1 t2 -> check ((x, t1) : ctx) e t2
+        Arrow t1 t2 -> check modCtx ((x, t1) : ctx) e t2
         _ -> Left (NotAFunctionType t)
-check ctx (Pair e1 e2) t =
+check modCtx ctx (Pair e1 e2) t =
     case t of
-        Prod t1 t2 -> check ctx e1 t1 >> check ctx e2 t2
+        Prod t1 t2 -> check modCtx ctx e1 t1 >> check modCtx ctx e2 t2
         _ -> Left (NotAProductType t)
-check ctx (Box psi e) (BoxTy psi' ty) = check psi e ty  
-check ctx e ty = do
-    inferred <- synth ctx e 
-    unless (inferred == ty) $ Left (TypeMismatch { expected = ty, actual = inferred})
+check modCtx ctx (Box psi e) t = 
+    case t of
+        BoxTy psi' ty 
+            | eqCtx psi psi' -> check modCtx psi e ty
+            | otherwise      -> Left(DifferentContexts psi psi')
+        _ -> Left (NotABoxType t)
+check modCtx ctx (LetBox u e1 e2) t = do
+    t1 <- synth modCtx ctx e1
+    case t1 of
+        BoxTy psi ty ->
+            let newModCtx = (u, (ty, psi)) : modCtx
+            in check newModCtx ctx e2 t
+        unexpectedType -> Left (NotABoxType unexpectedType)
+check modCtx ctx e ty = do
+    inferred <- synth modCtx ctx e 
+    unless (inferred == ty) $ Left (TypeMismatch {expected = ty, actual = inferred})
 
-synth :: Ctx -> Term -> Either Error Type
-synth ctx (Var x) = maybe (Left (UnboundVariable x)) Right (lookup x ctx)
-synth _ Unit = Right UnitTy
-synth _ TrueT = Right BoolTy
-synth _ FalseT = Right BoolTy
-synth _ (IntT n) = Right IntTy
-synth ctx (App e1 e2) = do 
-    t <- synth ctx e1 
+checkSubs :: ModCtx -> Ctx -> Subs -> Ctx -> Either Error ()
+checkSubs modCtx gamma sigma psi 
+    | length sigma /= length psi = Left (SubstitutionLengthMismatch)
+    | otherwise = mapM_ (uncurry (check modCtx gamma)) (zip (map snd sigma) (map snd psi))
+
+synth :: ModCtx -> Ctx -> Term -> Either Error Type
+synth _ ctx (Var x) = 
+    case lookup x ctx of
+        Nothing -> Left (UnboundVariable x)
+        Just ty -> Right ty
+synth modCtx gamma (ModVar u sigma) =
+    case lookup u modCtx of 
+        Nothing -> Left (UnboundModalVariable u)
+        Just (ty, psi) -> checkSubs modCtx gamma sigma psi >> return ty
+synth _ _ Unit = Right UnitTy
+synth _ _ TrueT = Right BoolTy
+synth _ _ FalseT = Right BoolTy
+synth _ _ (IntT n) = Right IntTy
+synth modCtx ctx (App e1 e2) = do 
+    t <- synth modCtx ctx e1 
     case t of 
-        Arrow t1 t2 -> check ctx e2 t1 >> return t2
+        Arrow t1 t2 -> check modCtx ctx e2 t1 >> return t2
         _ -> Left (NotAFunctionType t)    
-synth ctx (Fst e) = do
-    t <- synth ctx e
+synth modCtx ctx (Fst e) = do
+    t <- synth modCtx ctx e
     case t of 
         Prod t1 _ -> return t1
         _ -> Left (NotAProductType t)
-synth ctx (Snd e) = do
-    t <- synth ctx e
+synth modCtx ctx (Snd e) = do
+    t <- synth modCtx ctx e
     case t of 
         Prod _ t2 -> return t2
         _ -> Left (NotAProductType t)
-synth ctx (BinOp op e1 e2) = check ctx e1 IntTy >> check ctx e2 IntTy >> return IntTy
-synth ctx (Ann e ty) = ty <$ check ctx e ty
-synth _ term  = Left (TypingError $ "Could not inferr a type for the provided term: " ++ show term)
+synth modCtx ctx (BinOp op e1 e2) = check modCtx ctx e1 IntTy >> check modCtx ctx e2 IntTy >> return IntTy
+synth modCtx ctx (Ann e ty) = ty <$ check modCtx ctx e ty
+synth _ _ term  = Left (TypingError $ "Could not inferr a type for the provided term: " ++ show term)

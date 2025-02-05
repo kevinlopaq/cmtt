@@ -1,7 +1,8 @@
 module Syntax where
 
-type Ctx = [(String, Type)]
-type ModCtx = [(String, Ctx, Type)]
+type Ctx = [(String, Type)] -- x:A
+type ModCtx = [(String,(Type, Ctx))] -- u::A[Ψ]
+type Subs = [(String, Term)] -- (x₁ → e₁, ... ,xₙ → eₙ)
 
 eqCtx :: Ctx -> Ctx -> Bool
 eqCtx ctx1 ctx2 = map snd ctx1 == map snd ctx2
@@ -20,6 +21,7 @@ data Type
 data Term
     = Unit
     | Var String
+    | ModVar String Subs -- u⟨σ⟩ 
     | FalseT
     | TrueT
     | IntT Int
@@ -31,6 +33,7 @@ data Term
     | BinOp Op Term Term
     | Ann Term Type
     | Box Ctx Term
+    | LetBox String Term Term
     deriving (Show, Eq)
 
 data Op 
@@ -39,4 +42,3 @@ data Op
     | Mul 
     | Div
     deriving (Show, Eq)
-
