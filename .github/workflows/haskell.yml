@@ -41,3 +41,32 @@ jobs:
       run: cabal build --enable-tests --enable-benchmarks all
     - name: Run tests
       run: cabal test all
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up Haskell
+        uses: actions/setup-haskell@v2
+        with:
+          ghc-version: '8.8.4'
+
+      - name: Install dependencies
+        run: cabal update
+
+      - name: Build and test with coverage
+        run: |
+          cabal configure --enable-tests --enable-coverage
+          cabal build
+          cabal test
+
+      - name: Generate Coverage Report
+        run: |
+          hpc report dist-newstyle/build/x86_64-linux/ghc-8.8.4/cmtt-0.1.0.0/build/autogen/cabal_macros.h --verbose > coverage.txt
+        continue-on-error: true
+
+      - name: Upload coverage results to Codecov
+        uses: codecov/codecov-action@v2
+        with:
+          file: coverage.txt
