@@ -9,6 +9,7 @@ data Error
     | TypeMismatch { expected :: Type, actual :: Type }
     | NotAFunctionType Type
     | NotAProductType Type
+    | NotASumType Type
     | NotABoxType Type
     | DifferentContexts Ctx Ctx
     | SubstitutionLengthMismatch 
@@ -24,6 +25,11 @@ check modCtx ctx (Pair e1 e2) t =
     case t of
         Prod t1 t2 -> check modCtx ctx e1 t1 >> check modCtx ctx e2 t2
         _ -> Left (NotAProductType t)
+check modCtx ctx (Case e x1 e1 x2 e2) t = do
+    ty <- synth modCtx ctx e 
+    case ty of 
+        Sum t1 t2 -> check modCtx ((x1, t1):ctx) e1 t >> check modCtx ((x2, t2):ctx) e2 t
+        _         -> Left (NotASumType ty)
 check modCtx ctx (Box psi e) t = 
     case t of
         BoxTy psi' ty 
@@ -37,6 +43,15 @@ check modCtx ctx (LetBox u e1 e2) t = do
             let newModCtx = (u, (ty, psi)) : modCtx
             in check newModCtx ctx e2 t
         unexpectedType -> Left (NotABoxType unexpectedType)
+check modCtx ctx (LetVal x e1 e2) t = do
+    t1 <- synth modCtx ctx e1
+    check modCtx ((x, t1): ctx) e2 t
+check modCtx ctx (Fun f x e) t =
+    case t of
+        Arrow t1 t2 -> check modCtx ((f, Arrow t1 t2):( (x, t1) : ctx)) e t2
+        _ -> Left (NotAFunctionType t)
+check modCtx ctx (IfThenElse b e1 e2) t = 
+    check modCtx ctx b BoolTy >> check modCtx ctx e1 t >> check modCtx ctx e2 t
 check modCtx ctx e ty = do
     inferred <- synth modCtx ctx e 
     unless (inferred == ty) $ Left (TypeMismatch {expected = ty, actual = inferred})
@@ -74,6 +89,13 @@ synth modCtx ctx (Snd e) = do
     case t of 
         Prod _ t2 -> return t2
         _ -> Left (NotAProductType t)
+synth modCtx ctx (InL t2 e) = do
+    t1 <- synth modCtx ctx e
+    return (Sum t1 t2)
+synth modCtx ctx (InR t1 e) = do
+    t2 <- synth modCtx ctx e
+    return (Sum t1 t2)
 synth modCtx ctx (BinOp op e1 e2) = check modCtx ctx e1 IntTy >> check modCtx ctx e2 IntTy >> return IntTy
+synth modCtx ctx (BinPred pred e1 e2) = check modCtx ctx e1 IntTy >> check modCtx ctx e2 IntTy >> return BoolTy
 synth modCtx ctx (Ann e ty) = ty <$ check modCtx ctx e ty
 synth _ _ term  = Left (TypingError $ "Could not inferr a type for the provided term: " ++ show term)

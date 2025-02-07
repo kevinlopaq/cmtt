@@ -263,6 +263,46 @@ result35 = check modCtx35 ctx35 arg35 (BoxTy [] IntTy)
 expected35 = Right ()
 test35 = TestCase (assertEqual "35. Checking modal program evaluating to int" result35 expected35)
 
+-- Checking let val x = 3 in x + 2 against int
+arg36 = LetVal "x" (IntT 3) (BinOp Add (Var "x") (IntT 2))
+ctx36 = []
+modCtx36 = [] 
+result36 = check modCtx36 ctx35 arg36 IntTy
+expected36 = Right ()
+test36 = TestCase (assertEqual "36. Checking let val in a case where it should succeed" result36 expected36)
+
+-- Program to calculate the factorial of a number
+arg37 = Fun "fact" "n" (IfThenElse (BinPred Eq (Var "n") (IntT 0)) (IntT 0) (BinOp Mul (Var "n") ( App (Var "fact") (BinOp Sub (Var "n") (IntT 1)) )))
+ctx37 = []
+modCtx37 = [] 
+result37 = check modCtx37 ctx37 arg37 (Arrow IntTy IntTy)
+expected37 = Right ()
+test37 = TestCase (assertEqual "37. Checking factorial against int → int should succeed" result37 expected37)
+
+-- Checking case construct with variable
+arg38 = Lam "x" (Case (Var "x") "x1" (BinOp Add (Var "x1") (IntT 2)) "x2" (BinOp Add (Var "x2") (IntT 3)))
+ctx38 = []
+modCtx38 = [] 
+result38 = check modCtx38 ctx38 arg38 (Arrow (Sum IntTy IntTy) IntTy)
+expected38 = Right ()
+test38 = TestCase (assertEqual "38. Checking case construct" result38 expected38)
+
+-- Checking case construct with inject left
+arg39 = Case (InL IntTy (IntT 3)) "x1" (BinOp Add (Var "x1") (IntT 2)) "x2" (BinOp Add (Var "x2") (IntT 3))
+ctx39 = []
+modCtx39 = [] 
+result39 = check modCtx39 ctx39  arg39 IntTy
+expected39 = Right ()
+test39 = TestCase (assertEqual "39. Checking case construct with inject left" result39 expected39)
+
+-- Checking case construct with inject right
+arg40 = Case (InR IntTy (IntT 3)) "x1" (BinOp Add (Var "x1") (IntT 2)) "x2" (BinOp Add (Var "x2") (IntT 3))
+ctx40 = []
+modCtx40 = [] 
+result40 = check modCtx40 ctx40  arg40 IntTy
+expected40 = Right ()
+test40 = TestCase (assertEqual "40. Checking case construct with inject right" result40 expected40)
+
 tests = TestList [
                     test0, 
                     test1, 
@@ -299,7 +339,12 @@ tests = TestList [
                     test32,
                     test33,
                     test34,
-                    test35
+                    test35,
+                    test36, 
+                    test37,
+                    test38,
+                    test39,
+                    test40
                 ]
 
 main :: IO ()
