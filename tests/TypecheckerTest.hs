@@ -272,7 +272,7 @@ expected36 = Right ()
 test36 = TestCase (assertEqual "36. Checking let val in a case where it should succeed" result36 expected36)
 
 -- Program to calculate the factorial of a number
-arg37 = Fun "fact" "n" (IfThenElse (BinPred Eq (Var "n") (IntT 0)) (IntT 0) (BinOp Mul (Var "n") ( App (Var "fact") (BinOp Sub (Var "n") (IntT 1)) )))
+arg37 = Fun "fact" "n" (IfThenElse (BinPred LessThan (Var "n") (IntT 0)) (IntT 0) (BinOp Mul (Var "n") ( App (Var "fact") (BinOp Sub (Var "n") (IntT 1)) )))
 ctx37 = []
 modCtx37 = [] 
 result37 = check modCtx37 ctx37 arg37 (Arrow IntTy IntTy)
