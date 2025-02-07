@@ -31,8 +31,8 @@ data Term
     | Pair Term Term
     | Fst Term 
     | Snd Term
-    | InL Type Term
-    | InR Type Term
+    | InL Term
+    | InR Term
     | Case Term String Term String Term
     | BinOp Op Term Term
     | BinPred Pred Term Term

@@ -288,7 +288,7 @@ expected38 = Right ()
 test38 = TestCase (assertEqual "38. Checking case construct" result38 expected38)
 
 -- Checking case construct with inject left
-arg39 = Case (InL IntTy (IntT 3)) "x1" (BinOp Add (Var "x1") (IntT 2)) "x2" (BinOp Add (Var "x2") (IntT 3))
+arg39 = Case (Ann (InR (IntT 3)) (Sum IntTy IntTy)) "x1" (BinOp Add (Var "x1") (IntT 2)) "x2" (BinOp Add (Var "x2") (IntT 3))
 ctx39 = []
 modCtx39 = [] 
 result39 = check modCtx39 ctx39  arg39 IntTy
@@ -296,7 +296,7 @@ expected39 = Right ()
 test39 = TestCase (assertEqual "39. Checking case construct with inject left" result39 expected39)
 
 -- Checking case construct with inject right
-arg40 = Case (InR IntTy (IntT 3)) "x1" (BinOp Add (Var "x1") (IntT 2)) "x2" (BinOp Add (Var "x2") (IntT 3))
+arg40 = Case (Ann (InR (IntT 3)) (Sum IntTy IntTy)) "x1" (BinOp Add (Var "x1") (IntT 2)) "x2" (BinOp Add (Var "x2") (IntT 3))
 ctx40 = []
 modCtx40 = [] 
 result40 = check modCtx40 ctx40  arg40 IntTy

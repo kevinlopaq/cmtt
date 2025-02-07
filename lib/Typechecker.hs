@@ -30,6 +30,14 @@ check modCtx ctx (Case e x1 e1 x2 e2) t = do
     case ty of 
         Sum t1 t2 -> check modCtx ((x1, t1):ctx) e1 t >> check modCtx ((x2, t2):ctx) e2 t
         _         -> Left (NotASumType ty)
+check modCtx ctx (InL e) t = do
+    case t of 
+        Sum t1 _ -> check modCtx ctx e t1
+        _        -> Left (NotASumType t)
+check modCtx ctx (InR e) t = do
+    case t of 
+        Sum _ t2 -> check modCtx ctx e t2
+        _        -> Left (NotASumType t)
 check modCtx ctx (Box psi e) t = 
     case t of
         BoxTy psi' ty 
@@ -89,12 +97,6 @@ synth modCtx ctx (Snd e) = do
     case t of 
         Prod _ t2 -> return t2
         _ -> Left (NotAProductType t)
-synth modCtx ctx (InL t2 e) = do
-    t1 <- synth modCtx ctx e
-    return (Sum t1 t2)
-synth modCtx ctx (InR t1 e) = do
-    t2 <- synth modCtx ctx e
-    return (Sum t1 t2)
 synth modCtx ctx (BinOp op e1 e2) = check modCtx ctx e1 IntTy >> check modCtx ctx e2 IntTy >> return IntTy
 synth modCtx ctx (BinPred pred e1 e2) = check modCtx ctx e1 IntTy >> check modCtx ctx e2 IntTy >> return BoolTy
 synth modCtx ctx (Ann e ty) = ty <$ check modCtx ctx e ty
