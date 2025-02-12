@@ -11,11 +11,32 @@ data Error
     | NotAProductType Type
     | NotASumType Type
     | NotABoxType Type
+    | NotADiaType Type
     | DifferentContexts Ctx Ctx
     | SubstitutionLengthMismatch 
     | TypingError String -- general error
     deriving (Show, Eq)
 
+-- Δ;Γ ⊢ σ <= Ψ
+checkSubs :: ModCtx -> Ctx -> Subs -> Ctx -> Either Error ()
+checkSubs delta gamma sigma psi 
+    | length sigma /= length psi = Left (SubstitutionLengthMismatch)
+    | otherwise = mapM_ (uncurry (check delta gamma)) (zip (map snd sigma) (map snd psi))
+
+-- Δ;Γ ⊢ c <≑ A⟨Ψ⟩
+checkPoss :: ModCtx -> Ctx -> Term -> Type -> Ctx -> Either Error ()
+checkPoss delta gamma (Ret sigma e) t psi = 
+    checkSubs delta gamma sigma psi >> check delta gamma e t
+checkPoss delta gamma (Seq psi x e c) t theta =
+    check delta gamma e (DiaTy psi t) >> checkPoss delta ((x, t): psi) c t theta
+checkPoss delta gamma (LetBox u e c) t theta = do
+    ty <- synth delta gamma e
+    case ty of
+        BoxTy psi ty' -> 
+            checkPoss ((u, (ty', psi)) : delta) gamma c t theta
+        _ -> Left (NotABoxType ty)
+
+-- Δ;Γ ⊢ e <= A
 check :: ModCtx -> Ctx -> Term -> Type -> Either Error ()
 check modCtx ctx (Lam x e) t = 
     case t of 
@@ -38,19 +59,6 @@ check modCtx ctx (InR e) t = do
     case t of 
         Sum _ t2 -> check modCtx ctx e t2
         _        -> Left (NotASumType t)
-check modCtx ctx (Box psi e) t = 
-    case t of
-        BoxTy psi' ty 
-            | eqCtx psi psi' -> check modCtx psi e ty
-            | otherwise      -> Left(DifferentContexts psi psi')
-        _ -> Left (NotABoxType t)
-check modCtx ctx (LetBox u e1 e2) t = do
-    t1 <- synth modCtx ctx e1
-    case t1 of
-        BoxTy psi ty ->
-            let newModCtx = (u, (ty, psi)) : modCtx
-            in check newModCtx ctx e2 t
-        unexpectedType -> Left (NotABoxType unexpectedType)
 check modCtx ctx (LetVal x e1 e2) t = do
     t1 <- synth modCtx ctx e1
     check modCtx ((x, t1): ctx) e2 t
@@ -60,15 +68,26 @@ check modCtx ctx (Fun f x e) t =
         _ -> Left (NotAFunctionType t)
 check modCtx ctx (IfThenElse b e1 e2) t = 
     check modCtx ctx b BoolTy >> check modCtx ctx e1 t >> check modCtx ctx e2 t
-check modCtx ctx e ty = do
+check modCtx ctx (Box psi e) t = 
+    case t of
+        BoxTy psi' ty 
+            | eqCtx psi psi' -> check modCtx psi e ty
+            | otherwise      -> Left(DifferentContexts psi psi')
+        _ -> Left (NotABoxType t)
+check modCtx ctx (LetBox u e1 e2) t = do
+    t1 <- synth modCtx ctx e1
+    case t1 of
+        BoxTy psi ty -> check ((u, (ty, psi)) : modCtx) ctx e2 t
+        _            -> Left (NotABoxType t1)
+check modCtx ctx (Do c) t =
+    case t of 
+        DiaTy psi ty -> checkPoss modCtx ctx c ty psi
+        unexpectedType -> Left (NotADiaType unexpectedType)
+check modCtx ctx e ty = do -- Subsumption rule
     inferred <- synth modCtx ctx e 
     unless (inferred == ty) $ Left (TypeMismatch {expected = ty, actual = inferred})
 
-checkSubs :: ModCtx -> Ctx -> Subs -> Ctx -> Either Error ()
-checkSubs modCtx gamma sigma psi 
-    | length sigma /= length psi = Left (SubstitutionLengthMismatch)
-    | otherwise = mapM_ (uncurry (check modCtx gamma)) (zip (map snd sigma) (map snd psi))
-
+-- Δ;Γ ⊢ e => A
 synth :: ModCtx -> Ctx -> Term -> Either Error Type
 synth _ ctx (Var x) = 
     case lookup x ctx of

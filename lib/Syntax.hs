@@ -16,7 +16,8 @@ data Type
     | Arrow Type Type
     | Prod Type Type
     | Sum Type Type
-    | BoxTy Ctx Type
+    | BoxTy Ctx Type -- [Ψ]A
+    | DiaTy Ctx Type -- ⟨Ψ⟩A
     deriving (Show, Eq) 
 
 data Term
@@ -39,9 +40,12 @@ data Term
     | LetVal String Term Term
     | IfThenElse Term Term Term
     | Fun String String Term
-    | Ann Term Type
     | Box Ctx Term
     | LetBox String Term Term
+    | Do Term 
+    | Ret Subs Term -- ret ⟨σ⟩ e
+    | Seq Ctx String Term Term -- Ψ,x ← e; c
+    | Ann Term Type
     deriving (Show, Eq)
 
 -- Binary operations for integers
