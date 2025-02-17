@@ -1,7 +1,7 @@
 import Test.HUnit
 import System.Exit (exitFailure, exitSuccess)
-import Typechecker 
 import Syntax
+import Typechecker
 
 -- Variable found in context: the variable 'x' is in the context with type IntTy
 arg0 = Var "x"

@@ -1,4 +1,9 @@
 module Main where
 
+import Lexer (alexScanTokens)  -- Import the lexer
+
 main :: IO ()
-main = putStrLn "Hello, Haskell!"
+main = do
+    let input = "λx.x"
+    let tokens = alexScanTokens input
+    print tokens  -- This will print the list of tokens

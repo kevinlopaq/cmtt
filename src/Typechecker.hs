@@ -79,11 +79,13 @@ check modCtx ctx (LetBox u e1 e2) t = do
     case t1 of
         BoxTy psi ty -> check ((u, (ty, psi)) : modCtx) ctx e2 t
         _            -> Left (NotABoxType t1)
+-- T-Do
 check modCtx ctx (Do c) t =
     case t of 
         DiaTy psi ty -> checkPoss modCtx ctx c ty psi
         unexpectedType -> Left (NotADiaType unexpectedType)
-check modCtx ctx e ty = do -- Subsumption rule
+-- T-Subs
+check modCtx ctx e ty = do 
     inferred <- synth modCtx ctx e 
     unless (inferred == ty) $ Left (TypeMismatch {expected = ty, actual = inferred})
 
