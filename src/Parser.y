@@ -29,6 +29,8 @@ import Data.List (isPrefixOf)
     "."             { LambdaBodyTok }
     fst             { FstTok }
     snd             { SndTok }
+    inl             { InlTok }
+    inr             { InrTok }
 
 %right "λ" "\\" "→" "->"
 %left "×" "+"
@@ -53,6 +55,8 @@ Term :  intT                  { IntT $1 }
     |   "λ" id "." Term       { Lam $2 $4 }
     |   fst Term              { Fst $2 }
     |   snd Term              { Snd $2 }
+    |   inl Term              { InL $2 }
+    |   inr Term              { InR $2 }
     |   "(" Term ")"          { Parens $2 }
 
 {
@@ -75,6 +79,8 @@ data Token
     | LambdaBodyTok
     | FstTok 
     | SndTok
+    | InlTok
+    | InrTok
     | LParen
     | RParen
     | AnnTok 
@@ -95,6 +101,8 @@ lexer cs
     | Just ("snd", rest) <- unconsPrefix "snd" cs = SndTok : lexer rest
     | Just ("(", rest) <- unconsPrefix "(" cs = LParen : lexer rest
     | Just (")", rest) <- unconsPrefix ")" cs = RParen : lexer rest
+    | Just ("inl", rest) <- unconsPrefix "inl" cs = InlTok : lexer rest
+    | Just ("inr", rest) <- unconsPrefix "inr" cs = InrTok : lexer rest
     | isSpace (head cs) = lexer (tail cs)
     | isAlpha (head cs) = lexId cs
     | isDigit (head cs) = lexNum cs
