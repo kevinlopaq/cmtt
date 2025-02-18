@@ -7,5 +7,7 @@
 *.prof
 *.hie
 
+cabal.project.local
+cabal.project.local~
 Setup.hs
 CHANGELOG.md
