@@ -1,3 +1,2 @@
-tests: True
-coverage: True
-library-coverage: True
+coverage: False
+library-coverage: False
