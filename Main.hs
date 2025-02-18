@@ -4,7 +4,7 @@ import Parser -- Import parser
 
 main :: IO ()
 main = do
-    let tokens = lexer "x :: A → B → int"
+    let tokens = lexer "λx.x :: int → int"
     print tokens
     let ast = parse tokens
     print ast

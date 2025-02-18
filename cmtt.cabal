@@ -23,13 +23,13 @@ executable cmtt
   build-depends:       base, array, cmtt
   --hs-source-dirs:      
   default-language:    Haskell2010
-  build-tool-depends:  alex:alex, happy:happy
+  build-tool-depends:  happy:happy
 
 library 
   hs-source-dirs: src
-  exposed-modules: Syntax, Typechecker, Lexer, Parser 
+  exposed-modules: Syntax, Typechecker, Parser 
   build-depends: base, array
-  build-tool-depends: alex:alex, happy:happy
+  build-tool-depends: happy:happy
 
 test-suite typechecker_tests
   type: exitcode-stdio-1.0
@@ -37,8 +37,8 @@ test-suite typechecker_tests
   build-depends: base, HUnit, cmtt
   hs-source-dirs: tests
 
---test-suite parser_tests
---  type: exitcode-stdio-1.0
---  main-is: ParserTest.hs
---  build-depends: base, HUnit, cmtt
---  hs-source-dirs: tests
+test-suite parser_tests
+  type: exitcode-stdio-1.0
+  main-is: ParserTest.hs
+  build-depends: base, HUnit, cmtt
+  hs-source-dirs: tests
