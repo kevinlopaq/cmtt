@@ -89,7 +89,11 @@ check modCtx ctx e ty = do
     inferred <- synth modCtx ctx e 
     unless (inferred == ty) $ Left (TypeMismatch {expected = ty, actual = inferred})
 
+
 -- Δ;Γ ⊢ e => A
+synth0 :: Term -> Either Error Type
+synth0 e = synth [] [] e
+
 synth :: ModCtx -> Ctx -> Term -> Either Error Type
 synth _ ctx (Var x) = 
     case lookup x ctx of

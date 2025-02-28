@@ -46,7 +46,6 @@ data Term
     | Ret Subs Term -- ret ⟨σ⟩ e
     | Seq Ctx String Term Term -- Ψ,x ← e; c
     | Ann Term Type
-    | Parens Term
     deriving (Show, Eq)
 
 -- Binary operations for integers

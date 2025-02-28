@@ -1,0 +1,1 @@
+@ λx. λy. let box u = x in let box w = y in box app(u, w)  : ☐(A → B) → (☐A → ☐B)

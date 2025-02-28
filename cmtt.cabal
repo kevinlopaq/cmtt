@@ -20,14 +20,14 @@ executable cmtt
   main-is:             Main.hs
   -- other-modules:       
   -- other-extensions:
-  build-depends:       base, array, cmtt
+  build-depends:       base, array, cmtt, optparse-applicative
   --hs-source-dirs:      
   default-language:    Haskell2010
   build-tool-depends:  happy:happy
 
 library 
   hs-source-dirs: src
-  exposed-modules: Syntax, Typechecker, Parser 
+  exposed-modules: Syntax, Parser, Typechecker 
   build-depends: base, array
   build-tool-depends: happy:happy
 
