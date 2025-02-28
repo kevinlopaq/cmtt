@@ -15,7 +15,7 @@ test1 = TestCase (assertEqual "1. Parsing identity λx.x :: int → int" result1
 
 arg2 = "(3)"
 result2 = parseString arg2
-expected2 = Parens (IntT 3)
+expected2 = IntT 3
 test2 = TestCase (assertEqual "2. Parsing integer inside parentheses" result2 expected2)
 
 arg3 = "λp. fst p :: A×B → B"
