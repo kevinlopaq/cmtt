@@ -5,7 +5,12 @@ type ModCtx = [(String,(Type, Ctx))] -- u::A[Ψ]
 type Subs = [(String, Term)] -- (x₁ → e₁, ... ,xₙ → eₙ)
 
 eqCtx :: Ctx -> Ctx -> Bool
-eqCtx ctx1 ctx2 = map snd ctx1 == map snd ctx2
+eqCtx ctx1 ctx2 = length ctx1 == length ctx2 && all eqTypes (zip (map snd ctx1) (map snd ctx2))
+    where
+        eqTypes (UnspecCtxTy, _) = True 
+        eqTypes (_, UnspecCtxTy) = True
+        eqTypes (t1, t2) = t1 == t2
+
 
 data Type 
     = BaseTy String
@@ -18,6 +23,7 @@ data Type
     | Sum Type Type
     | BoxTy Ctx Type -- [Ψ]A
     | DiaTy Ctx Type -- ⟨Ψ⟩A
+    | UnspecCtxTy 
     deriving (Show, Eq) 
 
 data Term

@@ -1,1 +1,0 @@
-@ let box u = (@ box [x:int, y:int].(+ x y) : [x:int, y:int]int) in u⟨x→5, y→2⟩ : int

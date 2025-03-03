@@ -49,7 +49,7 @@ main = do
             putStrLn $ contents
             ast <- return (parseString contents)
             case (synth0 ast) of
-                Right ty -> print $ "Yup. Program typechecks"
+                Right ty -> putStrLn $ "Yup. Program typechecks"
                 Left err -> putStrLn $ "Typechecking error: " ++ show(err)
 
 --        Eval file -> do

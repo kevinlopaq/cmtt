@@ -231,6 +231,15 @@ result31 = check modCtx31 ctx31 arg31 (BoxTy [("x", IntTy), ("y", IntTy)] IntTy)
 expected31 = Right ()
 test31 = TestCase (assertEqual "31. Checking box type with value variables in context should succeed" result31 expected31)
 
+-- Checking box x, y. (x + y) against [x:int, y:int]int should succeed
+arg31_2 = Box [("x", UnspecCtxTy), ("y", UnspecCtxTy)] (BinOp Add (Var "x") (Var "y"))
+ctx31_2 = []
+modCtx31_2 = [] 
+result31_2 = check modCtx31_2 ctx31_2 arg31_2 (BoxTy [("x", IntTy), ("y", IntTy)] IntTy)
+expected31_2 = Right ()
+test31_2 = TestCase (assertEqual "31_2. Checking box type with value variables in context should succeed" result31_2 expected31_2)
+
+
 -- Checking λz. box x:int, y:int. (x + y + z) against int → [x:int, y:int]int should fail
 arg32 = Lam "z" (Box [("x", IntTy), ("y", IntTy)] (BinOp Add (BinOp Add (Var "x") (Var "y")) (Var "z")))
 ctx32 = []
@@ -336,6 +345,7 @@ tests = TestList [
                     test29,
                     test30,
                     test31,
+                    test31_2,
                     test32,
                     test33,
                     test34,

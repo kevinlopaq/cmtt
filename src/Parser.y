@@ -18,7 +18,6 @@ import Data.List (isPrefixOf)
     "×"             { ProdTyTok }
     "+"             { SumTok }
     "☐"             { EmptyCtxTok }
-    "[]"            { EmptyCtxTok }
     "@"             { AnnTok }
     ":"             { AnnSepTok }
     app             { AppTok }
@@ -51,7 +50,7 @@ import Data.List (isPrefixOf)
 %right "λ" "\\" "→" "->"
 %nonassoc "☐"
 %left "×" "+"
-%nonassoc "(" ")"
+%nonassoc "(" ")" "[" "]"
 %% 
 
 Term : app "(" Term "," Term ")"   { App $3 $5 }
@@ -83,7 +82,8 @@ Context : "[" "]"                 { [] }
 CtxElems : CtxElem                { [$1] }
         |  CtxElems "," CtxElem   { $1 ++ [$3] }
 
-CtxElem : id ":" Type             { ($1, $3) }
+CtxElem : id                      { ($1, UnspecCtxTy) }  
+        | id ":" Type             { ($1, $3) }
 
 Subs : "⟨" "⟩"                             { [] }  -- Empty substitution
     | "⟨" SubElems "⟩"                    { $2 }  -- Non-empty substitution
@@ -98,7 +98,7 @@ Type :  Type "→" Type         { Arrow $1 $3 }
     |   Type "+" Type         { Sum $1 $3 }
     |   "(" Type ")"          { $2 }
     |   "☐" Type              { BoxTy [] $2 }
-    |   Context Type           { BoxTy $1 $2 }
+    |   Context Type          { BoxTy $1 $2 }
     |   id                    { BaseTy $1 }
     |   bool                  { BoolTy }
     |   int                   { IntTy }

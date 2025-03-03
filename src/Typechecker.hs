@@ -71,7 +71,7 @@ check modCtx ctx (IfThenElse b e1 e2) t =
 check modCtx ctx (Box psi e) t = 
     case t of
         BoxTy psi' ty 
-            | eqCtx psi psi' -> check modCtx psi e ty
+            | eqCtx psi psi' -> check modCtx psi' e ty
             | otherwise      -> Left(DifferentContexts psi psi')
         _ -> Left (NotABoxType t)
 check modCtx ctx (LetBox u e1 e2) t = do
