@@ -1,6 +1,6 @@
 module Syntax where
 
-import Data.Set (Set, empty, singleton, union, difference)
+import Data.Set (Set, empty, singleton, union, difference, fromList)
 
 type Ctx = [(String, Type)] -- x:A
 type ModCtx = [(String,(Type, Ctx))] -- u::A[Ψ]
@@ -87,9 +87,15 @@ fv (InL e) = fv e
 fv (InR e) = fv e
 fv (BinOp op e1 e2) = (fv e1) `union` (fv e2)
 fv (BinPred pred e1 e2) = (fv e1) `union` (fv e2)
+fv (LetVal x e1 e2) = (fv e1) `union` ((fv e2) `difference` (singleton x)) 
 fv (IfThenElse b e1 e2) = (fv b) `union` (fv e1) `union` (fv e2)
+fv (Case e0 x1 e1 x2 e2) = (fv e0) `union` ((fv e1) `difference` (singleton x1)) `union` ((fv e2) `difference` (singleton x2))
+fv (Fun f x e) = (fv e) `difference` fromList [f, x]
 fv (Box ctx e) = empty 
 fv (LetBox u e1 e2) = (fv e1) `union` (fv e2)
+fv (Do c) = fv c
+fv (Ret sigma e) = (fvSubs sigma) `union` (fv e)
+fv (Seq ctx x e c) = (fv e) `union` ( (fv c) `difference` ( fromList (map fst ctx) `union` (singleton x) ) ) 
 fv (Ann e ty) = fv e
 
 fvSubs :: Subs -> Set String
@@ -112,9 +118,15 @@ fmv (InL e) = fmv e
 fmv (InR e) = fmv e
 fmv (BinOp op e1 e2) = (fmv e1) `union` (fmv e2)
 fmv (BinPred pred e1 e2) = (fmv e1) `union` (fmv e2)
---fmv (IfThenElse b e1 e2) = ??
-fmv (Box ctx e) = fmv e 
+fmv (IfThenElse b e1 e2) = (fmv b) `union` (fmv e1) `union` (fmv e2)
+fmv (LetVal x e1 e2) = (fmv e1) `union` (fmv e2)  
+fmv (Case e0 x1 e1 x2 e2) = (fmv e0) `union` (fmv e1) `union` (fmv e2)
+fmv (Fun f x e) = (fmv e)
+fmv (Box ctx e) = fmv e
 fmv (LetBox u e1 e2) = (fv e1) `union` (fv e2 `difference` (singleton u))
+fmv (Do c) = fmv c
+fmv (Ret sigma e) = (fmvSubs sigma) `union` (fmv e)
+fmv (Seq ctx x e c) = (fmv e) `union`  (fmv c)
 fmv (Ann e ty) = fmv e
 
 fmvSubs :: Subs -> Set String 
