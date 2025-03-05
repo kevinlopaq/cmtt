@@ -28,7 +28,7 @@ executable cmtt
 library 
   hs-source-dirs: src
   exposed-modules: Syntax, Parser, Typechecker 
-  build-depends: base, array
+  build-depends: base, array, containers
   build-tool-depends: happy:happy
 
 test-suite typechecker_tests

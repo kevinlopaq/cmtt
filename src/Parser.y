@@ -59,8 +59,8 @@ Term : app "(" Term "," Term ")"   { App $3 $5 }
     |   false                       { FalseT }
     |   unitTerm                    { Unit }
     |   id                          { Var $1 }
-    |   modId Subs                  { ModVar $1 $2 }
     |   modId                       { ModVar $1 [] }
+    |   modId Subs                  { ModVar $1 $2 }
     |   "\\" id "." Term            { Lam $2 $4 }                 
     |   "λ" id "." Term             { Lam $2 $4 }
     |   fst Term                    { Fst $2 }
@@ -194,8 +194,8 @@ lexId cs =
     ("bool",rest) -> BoolTyTok : lexer rest
     ("int",rest)  -> IntTyTok : lexer rest
     ("in", rest)  -> InTok : lexer rest
-    ("u",rest)  -> ModIdTok "u" : lexer rest
-    ("w",rest)  -> ModIdTok "w" : lexer rest
+    ("u",rest) -> ModIdTok "u" : lexer rest
+    ("w",rest) -> ModIdTok "w" : lexer rest
     (var,rest)   -> IdTok var : lexer rest
 
 parseString =  parse . lexer

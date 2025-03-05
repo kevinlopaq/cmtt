@@ -1,5 +1,7 @@
 module Syntax where
 
+import Data.Set (Set, empty, singleton, union, difference)
+
 type Ctx = [(String, Type)] -- x:A
 type ModCtx = [(String,(Type, Ctx))] -- u::A[Ψ]
 type Subs = [(String, Term)] -- (x₁ → e₁, ... ,xₙ → eₙ)
@@ -68,3 +70,53 @@ data Pred
     | LessThan
     | GreaterThan
     deriving (Show, Eq)
+
+fv :: Term -> Set String
+fv Unit = empty
+fv TrueT = empty 
+fv FalseT = empty 
+fv (IntT n) = empty
+fv (Var x) = singleton x
+fv (ModVar u subs) = fvSubs subs 
+fv (App e1 e2) = (fv e1) `union` (fv e2)
+fv (Lam x e) = (fv e) `difference` (singleton x)
+fv (Pair e1 e2) = (fv e1) `union` (fv e2)
+fv (Fst e) = fv e
+fv (Snd e) = fv e
+fv (InL e) = fv e
+fv (InR e) = fv e
+fv (BinOp op e1 e2) = (fv e1) `union` (fv e2)
+fv (BinPred pred e1 e2) = (fv e1) `union` (fv e2)
+fv (IfThenElse b e1 e2) = (fv b) `union` (fv e1) `union` (fv e2)
+fv (Box ctx e) = empty 
+fv (LetBox u e1 e2) = (fv e1) `union` (fv e2)
+fv (Ann e ty) = fv e
+
+fvSubs :: Subs -> Set String
+fvSubs [] = empty
+fvSubs ((x, e) : subs) = (fv e) `union` (fvSubs subs)
+
+fmv :: Term -> Set String 
+fmv Unit = empty
+fmv TrueT = empty 
+fmv FalseT = empty 
+fmv (IntT n) = empty
+fmv (Var x) = empty
+fmv (ModVar u subs) = (fmvSubs subs) `union` (singleton u)
+fmv (App e1 e2) = (fmv e1) `union` (fmv e2)
+fmv (Lam x e) = fmv e
+fmv (Pair e1 e2) = (fmv e1) `union` (fmv e2)
+fmv (Fst e) = fmv e
+fmv (Snd e) = fmv e
+fmv (InL e) = fmv e
+fmv (InR e) = fmv e
+fmv (BinOp op e1 e2) = (fmv e1) `union` (fmv e2)
+fmv (BinPred pred e1 e2) = (fmv e1) `union` (fmv e2)
+--fmv (IfThenElse b e1 e2) = ??
+fmv (Box ctx e) = fmv e 
+fmv (LetBox u e1 e2) = (fv e1) `union` (fv e2 `difference` (singleton u))
+fmv (Ann e ty) = fmv e
+
+fmvSubs :: Subs -> Set String 
+fmvSubs [] = empty
+fmvSubs ((x, e) : subs) = (fmv e) `union` (fmvSubs subs)
