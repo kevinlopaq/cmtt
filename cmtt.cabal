@@ -42,3 +42,9 @@ test-suite parser_tests
   main-is: ParserTest.hs
   build-depends: base, HUnit, cmtt
   hs-source-dirs: tests
+
+test-suite interpreter_tests
+  type: exitcode-stdio-1.0
+  main-is: InterpreterTest.hs
+  build-depends: base, HUnit, cmtt
+  hs-source-dirs: tests
