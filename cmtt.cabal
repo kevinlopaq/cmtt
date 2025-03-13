@@ -27,7 +27,7 @@ executable cmtt
 
 library 
   hs-source-dirs: src
-  exposed-modules: Syntax, Parser, Typechecker, Interpreter 
+  exposed-modules: Syntax, Parser, Typechecker, Substitutions 
   build-depends: base, array, containers
   build-tool-depends: happy:happy
 
@@ -43,8 +43,8 @@ test-suite parser_tests
   build-depends: base, HUnit, cmtt
   hs-source-dirs: tests
 
-test-suite interpreter_tests
+test-suite substitutions_tests
   type: exitcode-stdio-1.0
-  main-is: InterpreterTest.hs
+  main-is: SubstitutionsTest.hs
   build-depends: base, HUnit, cmtt
   hs-source-dirs: tests

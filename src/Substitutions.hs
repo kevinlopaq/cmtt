@@ -1,4 +1,4 @@
-module Interpreter where 
+module Substitutions where   
 
 import Syntax
 import Data.Set (Set, member, notMember, fromList)
