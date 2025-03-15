@@ -51,7 +51,7 @@ data Term
     | Box Ctx Term
     | LetBox String Term Term
     | Do Term 
-    | Ret Subs Term -- ret ⟨σ⟩ e
+    | Ret Subs Term -- ret ⟨σ, e⟩
     | Seq Ctx String Term Term -- Ψ,x ← e; c
     | Ann Term Type
     deriving (Show, Eq)

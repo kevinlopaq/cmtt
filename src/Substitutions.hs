@@ -1,7 +1,8 @@
 module Substitutions where   
 
 import Syntax
-import Data.Set (Set, member, notMember, fromList)
+import Data.Set (Set, member, notMember, fromList, toList, union, singleton, intersection)
+import Data.List (elemIndex)
 
 -- M[N/x]
 substitute :: Term -> String -> Term -> Term
@@ -66,24 +67,55 @@ substitute (Fun f x e) v s =
                         then let x' = freshVar x (fv s) 
                             in (x', substitute e' x (Var x'))
                         else (x, e')
-            eFinal = substitute e'' v s  -- Finally, apply substitution
+            eFinal = substitute e'' v s
         in Fun f' x' eFinal
 substitute (Box ctx e) _ _ = Box ctx e
 substitute (LetBox u e1 e2) x m = LetBox u (substitute e1 x m) (substitute e2 x m)
 substitute (Do c) x m = Do (substitute c x m)
 substitute (Ret sigma e) x m = Ret (substituteSubs sigma x m) (substitute e x m)
--- substitute (Seq ctx x e c) y n = 
---     let e' = substitute e y n in 
---         if x == y || y `member` (fromList (map fst ctx)) then 
---             Seq ctx x e' c
---         else Seq ctx x e' (substitute c y n)
+substitute (Seq ctx x e c) y m = 
+    let 
+        e' = substitute e y m 
+    in         
+        if x == y || y `member` (fromList (map fst ctx)) then 
+            Seq ctx x e' c
+        else
+            let 
+                i = toList ((fv m) `intersection` ( fromList(map fst ctx) `union` (singleton x)))
+                i' = freshVars i ((fv m) `union` ( fromList(map fst ctx) `union` (singleton x)))
+                x' = case elemIndex x i of
+                    Just idx -> i' !! idx
+                    Nothing  -> x
+                c' = substituteLst c i i'
+                ctx' = substituteLstCtx ctx i i'
+            in
+                Seq ctx' x' e' c'
 substitute (Ann e ty) x n = Ann (substitute e x n) ty
 
 substituteSubs :: Subs -> String -> Term -> Subs 
 substituteSubs [] _ _ = [] 
 substituteSubs ( (y, m) : sigma ) x n  = (y, substitute m x n)  : (substituteSubs sigma x n)
 
+-- lst1 and lst2 must have the same length!
+substituteLst :: Term -> [String] -> [String] -> Term
+substituteLst e lst1 lst2 = 
+    foldl (\term (x, x') -> substitute term x (Var x')) e (zip lst1 lst2)
+
+substituteLstCtx :: Ctx -> [String] -> [String] -> Ctx
+substituteLstCtx ctx lst1 lst2 = map substituteVar ctx
+    where
+        substituteVar (var, typ) = 
+            case elemIndex var lst1 of
+                Just idx -> (lst2 !! idx, typ)
+                Nothing  -> (var, typ)         
+
 freshVar :: String -> Set String -> String 
 freshVar x usedVars = head $ filter (`notMember` usedVars) candidates
     where 
         candidates = [x ++ show i | i <- [1 :: Int ..]]
+
+freshVars :: [String] -> Set String -> [String]
+freshVars l set  = map (\x -> freshVar x set) l
+
+freshVarCtx :: Ctx -> Set String -> Ctx
+freshVarCtx ctx set = map (\(x, y) -> (freshVar x set, y)) ctx
