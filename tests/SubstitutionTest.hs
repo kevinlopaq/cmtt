@@ -1,7 +1,7 @@
 import Test.HUnit
 import System.Exit (exitFailure, exitSuccess)
 import Syntax
-import Substitutions 
+import Substitution
 
 arg0 = Lam "x" (App (Var "y") (Var "x"))  -- λx. y x
 result0 = substitute arg0 "y" (Var "x")   -- [y → x](λx. y x) 

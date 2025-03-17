@@ -27,7 +27,8 @@ executable cmtt
 
 library 
   hs-source-dirs: src
-  exposed-modules: Syntax, Parser, Typechecker, Substitutions 
+  exposed-modules: Syntax, Parser, Typechecker, Substitution,
+    SimSubstitution
   build-depends: base, array, containers
   build-tool-depends: happy:happy
 

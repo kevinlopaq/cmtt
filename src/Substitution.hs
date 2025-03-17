@@ -1,4 +1,4 @@
-module Substitutions where   
+module Substitution where   
 
 import Syntax
 import Data.Set (Set, member, notMember, fromList, toList, union, singleton, intersection)
