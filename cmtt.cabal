@@ -46,6 +46,6 @@ test-suite parser_tests
 
 test-suite substitutions_tests
   type: exitcode-stdio-1.0
-  main-is: SubstitutionsTest.hs
+  main-is: SubstitutionTest.hs
   build-depends: base, HUnit, cmtt
   hs-source-dirs: tests

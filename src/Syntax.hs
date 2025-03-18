@@ -1,6 +1,6 @@
 module Syntax where
 
-import Data.Set (Set, empty, singleton, union, difference, fromList)
+import Data.Set (Set, empty, singleton, union, difference, member, notMember, fromList)
 
 type Ctx = [(String, Type)] -- x:A
 type ModCtx = [(String,(Type, Ctx))] -- u::A[Ψ]
@@ -132,3 +132,26 @@ fmv (Ann e ty) = fmv e
 fmvSubs :: Subs -> Set String 
 fmvSubs [] = empty
 fmvSubs ((x, e) : subs) = (fmv e) `union` (fmvSubs subs)
+
+diffSubs :: String -> Subs -> Subs 
+diffSubs x sigma = [(y, e) | (y, e) <- sigma, y /= x]
+
+restSubs :: Set String -> Subs -> Subs
+restSubs v sigma = [(x, t) | (x, t) <- sigma, x `member` v]
+
+domSubs :: Subs -> Set String 
+domSubs sigma = fromList [ x | (x, t) <- sigma]
+
+freshVar :: String -> Set String -> String 
+freshVar x usedVars = 
+    if x `notMember` usedVars then x
+    else 
+        head $ filter (`notMember` usedVars) candidates
+    where 
+        candidates = [x ++ show i | i <- [1 :: Int ..]]
+
+freshVars :: [String] -> Set String -> [String]
+freshVars l set  = map (\x -> freshVar x set) l
+
+freshVarCtx :: Ctx -> Set String -> Ctx
+freshVarCtx ctx set = map (\(x, y) -> (freshVar x set, y)) ctx

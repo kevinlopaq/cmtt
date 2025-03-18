@@ -108,14 +108,3 @@ substituteLstCtx ctx lst1 lst2 = map substituteVar ctx
             case elemIndex var lst1 of
                 Just idx -> (lst2 !! idx, typ)
                 Nothing  -> (var, typ)         
-
-freshVar :: String -> Set String -> String 
-freshVar x usedVars = head $ filter (`notMember` usedVars) candidates
-    where 
-        candidates = [x ++ show i | i <- [1 :: Int ..]]
-
-freshVars :: [String] -> Set String -> [String]
-freshVars l set  = map (\x -> freshVar x set) l
-
-freshVarCtx :: Ctx -> Set String -> Ctx
-freshVarCtx ctx set = map (\(x, y) -> (freshVar x set, y)) ctx
