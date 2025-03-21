@@ -29,6 +29,8 @@ simSubstitute (Lam x e) sigma =
     in 
         Lam x' (simSubstitute e sigma'')
 simSubstitute (App e1 e2) sigma = App (simSubstitute e1 sigma) (simSubstitute e2 sigma)
+simSubstitute (BinOp op e1 e2) sigma = BinOp op (simSubstitute e1 sigma) (simSubstitute e2 sigma)
+simSubstitute (BinPred pred e1 e2) sigma = BinPred pred (simSubstitute e1 sigma) (simSubstitute e2 sigma)
 simSubstitute (Box ctx e) _ = Box ctx e 
 simSubstitute (LetBox u e1 e2) sigma = LetBox u (simSubstitute e1 sigma) (simSubstitute e2 sigma)
 

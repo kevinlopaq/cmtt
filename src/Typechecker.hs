@@ -35,6 +35,16 @@ checkPoss delta gamma (LetBox u e c) t theta = do
         BoxTy psi ty' -> 
             checkPoss ((u, (ty', psi)) : delta) gamma c t theta
         _ -> Left (NotABoxType ty)
+checkPoss delta gamma (IfThenElse b e1 e2) t theta =
+    check delta gamma b BoolTy >> checkPoss delta gamma e1 t theta >> checkPoss delta gamma e2 t theta
+checkPoss delta gamma (Case e x1 c1 x2 c2) t theta = do
+    ty <- synth delta gamma e
+    case ty of 
+        Sum t1 t2 -> checkPoss delta ((x1, t1):gamma) c1 t theta >> checkPoss delta ((x2, t2):gamma) c2 t theta
+        _         -> Left (NotASumType ty)
+checkPoss _ _ e _ _ = 
+        Left (TypingError $ "checkPoss: unimplemented rule for term" ++ show e)
+
 
 -- Δ;Γ ⊢ e <= A
 check :: ModCtx -> Ctx -> Term -> Type -> Either Error ()
@@ -89,11 +99,11 @@ check modCtx ctx e ty = do
     inferred <- synth modCtx ctx e 
     unless (inferred == ty) $ Left (TypeMismatch {expected = ty, actual = inferred})
 
-
--- Δ;Γ ⊢ e => A
+-- ·;· ⊢ e => A
 synth0 :: Term -> Either Error Type
 synth0 e = synth [] [] e
 
+-- Δ;Γ ⊢ e => A
 synth :: ModCtx -> Ctx -> Term -> Either Error Type
 synth _ ctx (Var x) = 
     case lookup x ctx of
