@@ -151,6 +151,9 @@ freshVar x usedVars =
     where 
         candidates = [x ++ show i | i <- [1 :: Int ..]]
 
+domCtx :: Ctx -> Set String
+domCtx ctx = fromList [x | (x, y) <- ctx]
+
 freshVars :: [String] -> Set String -> [String]
 freshVars l set  = map (\x -> freshVar x set) l
 

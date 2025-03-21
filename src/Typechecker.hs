@@ -35,8 +35,8 @@ checkPoss delta gamma (LetBox u e c) t theta = do
         BoxTy psi ty' -> 
             checkPoss ((u, (ty', psi)) : delta) gamma c t theta
         _ -> Left (NotABoxType ty)
-checkPoss delta gamma (IfThenElse b e1 e2) t theta =
-    check delta gamma b BoolTy >> checkPoss delta gamma e1 t theta >> checkPoss delta gamma e2 t theta
+checkPoss delta gamma (IfThenElse b c1 c2) t theta =
+    check delta gamma b BoolTy >> checkPoss delta gamma c1 t theta >> checkPoss delta gamma c2 t theta
 checkPoss delta gamma (Case e x1 c1 x2 c2) t theta = do
     ty <- synth delta gamma e
     case ty of 
@@ -44,7 +44,6 @@ checkPoss delta gamma (Case e x1 c1 x2 c2) t theta = do
         _         -> Left (NotASumType ty)
 checkPoss _ _ e _ _ = 
         Left (TypingError $ "checkPoss: unimplemented rule for term" ++ show e)
-
 
 -- Δ;Γ ⊢ e <= A
 check :: ModCtx -> Ctx -> Term -> Type -> Either Error ()

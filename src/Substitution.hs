@@ -4,6 +4,7 @@ import Syntax
 import Data.Set (Set, member, notMember, fromList, toList, union, singleton, intersection)
 import Data.List (elemIndex)
 
+
 -- M[N/x]
 substitute :: Term -> String -> Term -> Term
 substitute (Var y) x e
