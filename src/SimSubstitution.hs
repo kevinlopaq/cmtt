@@ -33,6 +33,8 @@ simSubstitute (BinOp op e1 e2) sigma = BinOp op (simSubstitute e1 sigma) (simSub
 simSubstitute (BinPred pred e1 e2) sigma = BinPred pred (simSubstitute e1 sigma) (simSubstitute e2 sigma)
 simSubstitute (Box ctx e) _ = Box ctx e 
 simSubstitute (LetBox u e1 e2) sigma = LetBox u (simSubstitute e1 sigma) (simSubstitute e2 sigma)
+simSubstitute (Do c) sigma = Do (simSubstitute c sigma)
+simSubstitute (Ann e ty) sigma = Ann (simSubstitute e sigma) ty 
 
 simSubstituteSubs :: Subs -> Subs -> Subs
 simSubstituteSubs [] _  = [] 
