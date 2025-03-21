@@ -133,11 +133,12 @@ fmvSubs :: Subs -> Set String
 fmvSubs [] = empty
 fmvSubs ((x, e) : subs) = (fmv e) `union` (fmvSubs subs)
 
-diffSubs :: String -> Subs -> Subs 
-diffSubs x sigma = [(y, e) | (y, e) <- sigma, y /= x]
+diffSubs :: Subs -> Set String -> Subs 
+diffSubs sigma s = [(y, e) | (y, e) <- sigma, y `notMember` s]
 
-restSubs :: Set String -> Subs -> Subs
-restSubs v sigma = [(x, t) | (x, t) <- sigma, x `member` v]
+-- Restriction
+restSubs ::  Subs -> Set String -> Subs
+restSubs sigma v = [(x, t) | (x, t) <- sigma, x `member` v]
 
 domSubs :: Subs -> Set String 
 domSubs sigma = fromList [ x | (x, t) <- sigma]
