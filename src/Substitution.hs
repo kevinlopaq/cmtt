@@ -109,3 +109,7 @@ substituteLstCtx ctx lst1 lst2 = map substituteVar ctx
             case elemIndex var lst1 of
                 Just idx -> (lst2 !! idx, typ)
                 Nothing  -> (var, typ)         
+
+-- sigma and ctx must have the same length!
+renameSubs :: Subs -> Ctx -> Subs 
+renameSubs sigma ctx = zip (map fst ctx) (map snd sigma)
