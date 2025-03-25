@@ -49,3 +49,9 @@ test-suite substitutions_tests
   main-is: SubstitutionTest.hs
   build-depends: base, HUnit, cmtt
   hs-source-dirs: tests
+
+test-suite modsubstitutions_tests
+  type: exitcode-stdio-1.0
+  main-is: ModSubstitutionTest.hs
+  build-depends: base, HUnit, cmtt
+  hs-source-dirs: tests
