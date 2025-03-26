@@ -50,6 +50,9 @@ modSubstitute (LetBox v e1 e2) u ctx m =
                 LetBox v' e1' (modSubstitute e2' u ctx m)
         else 
             LetBox v e1' (modSubstitute e2 u ctx m)
+modSubstitute (Do c) u ctx m = Do (modSubstitute c u ctx m)
+modSubstitute (Ret sigma e) u ctx m = Ret (modSubstituteSubs sigma u ctx m) (modSubstitute e u ctx m)
+modSubstitute (Ann e ty) u ctx m = Ann (modSubstitute e u ctx m) ty
 
 renameModVar :: Term -> String -> String -> Term 
 renameModVar (ModVar u sigma) v w =
