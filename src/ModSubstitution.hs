@@ -1,7 +1,7 @@
 module ModSubstitution where   
 
 import Syntax
-import Data.Set (Set, member, notMember, fromList, toList, union, singleton, intersection)
+import Data.Set (Set, member)
 import Data.List (elemIndex)
 
 import SimSubstitution (simSubstitute)
@@ -31,6 +31,7 @@ modSubstitute (InL e) u ctx n = InL (modSubstitute e u ctx n)
 modSubstitute (InR e) u ctx n = InR (modSubstitute e u ctx n)
 modSubstitute (App m n) u ctx n' = App (modSubstitute m u ctx n') (modSubstitute n u ctx n')
 modSubstitute (Lam x m) u ctx n = Lam x (modSubstitute m u ctx n)
+modSubstitute (LetVal x e1 e2) u ctx n = LetVal x (modSubstitute e1 u ctx n) (modSubstitute e2 u ctx n)
 modSubstitute (Box gamma n) u ctx m = Box gamma (modSubstitute n u ctx m)
 modSubstitute (LetBox v e1 e2) u ctx m = 
     let 
