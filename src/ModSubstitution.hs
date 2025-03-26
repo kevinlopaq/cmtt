@@ -29,9 +29,12 @@ modSubstitute (Fst e) u ctx n = Fst (modSubstitute e u ctx n)
 modSubstitute (Snd e) u ctx n = Snd (modSubstitute e u ctx n)
 modSubstitute (InL e) u ctx n = InL (modSubstitute e u ctx n)
 modSubstitute (InR e) u ctx n = InR (modSubstitute e u ctx n)
+modSubstitute (Case e x1 e1 x2 e2) u ctx n = Case (modSubstitute e u ctx n) x1 (modSubstitute e1 u ctx n) x2 (modSubstitute e2 u ctx n)
 modSubstitute (App m n) u ctx n' = App (modSubstitute m u ctx n') (modSubstitute n u ctx n')
 modSubstitute (Lam x m) u ctx n = Lam x (modSubstitute m u ctx n)
 modSubstitute (LetVal x e1 e2) u ctx n = LetVal x (modSubstitute e1 u ctx n) (modSubstitute e2 u ctx n)
+modSubstitute (BinOp op e1 e2) u ctx n = BinOp op (modSubstitute e1 u ctx n) (modSubstitute e2 u ctx n)
+modSubstitute (BinPred pred e1 e2) u ctx n = BinPred pred (modSubstitute e1 u ctx n) (modSubstitute e2 u ctx n)
 modSubstitute (Box gamma n) u ctx m = Box gamma (modSubstitute n u ctx m)
 modSubstitute (LetBox v e1 e2) u ctx m = 
     let 
