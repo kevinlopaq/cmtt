@@ -1,14 +1,37 @@
 module Interpreter where
 
 import Syntax 
+import Substitution
+
+fullEval :: Term -> Term 
+fullEval t =
+    let t' = eval t 
+    in if t' == t then t else fullEval t' 
 
 eval :: Term -> Term 
 eval Unit = Unit
 eval (Var x) = Var x
+eval (ModVar u sigma) = ModVar u sigma
 eval TrueT = TrueT 
 eval FalseT = FalseT 
 eval (IntT n) = IntT n
-eval (Lam x t) = Lam x t -- Lazy
+eval (BinOp op e1 e2) =
+    case eval e1 of 
+        IntT n1 ->  
+            case eval e2 of 
+                IntT n2 -> IntT (n1 + n2)
+                e2' -> BinOp op (IntT n1) e2' 
+        e1' -> BinOp op e1' e2 
+eval (Lam x t) = Lam x t
+eval (App e1 e2) = 
+    case eval e1 of
+        Lam x body -> 
+            if isValue e2 then 
+                substitute body x e2 
+            else 
+                App (Lam x body) (eval e2)
+        e1' -> App e1' e2
+
 
 isValue :: Term -> Bool
 isValue (IntT _) = True 
