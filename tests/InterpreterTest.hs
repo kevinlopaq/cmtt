@@ -49,6 +49,93 @@ result6 = fullEval arg6
 expected6 = IntT 1
 test6 = TestCase (assertEqual "6. Testing Case with evaluation in the InL branch" result6 expected6)
 
+-- Test 7: Simple pair construction and projection with Fst
+arg7 = Fst (Pair (IntT 1) (IntT 2))
+result7 = fullEval arg7
+expected7 = IntT 1
+test7 = TestCase (assertEqual "7. Testing Fst projection from a simple pair" result7 expected7)
+
+-- Test 8: Simple pair construction and projection with Snd
+arg8 = Snd (Pair (IntT 1) (IntT 2))
+result8 = fullEval arg8
+expected8 = IntT 2
+test8 = TestCase (assertEqual "8. Testing Snd projection from a simple pair" result8 expected8)
+
+-- Test 9: Nested pair projection with Fst
+arg9 = Fst (Pair (Pair (IntT 3) (IntT 4)) (IntT 2))
+result9 = fullEval arg9
+expected9 = Pair (IntT 3) (IntT 4)
+test9 = TestCase (assertEqual "9. Testing Fst projection from a nested pair" result9 expected9)
+
+-- Test 10: Nested pair projection with Snd
+arg10 = Snd (Pair (IntT 1) (Pair (IntT 3) (IntT 4)))
+result10 = fullEval arg10
+expected10 = Pair (IntT 3) (IntT 4)
+test10 = TestCase (assertEqual "10. Testing Snd projection from a nested pair" result10 expected10)
+
+-- Test 11: Projection from a pair where one component is not fully evaluated
+arg11 = Fst (Pair (App (Lam "x" (Var "x")) (IntT 5)) (IntT 10))
+result11 = fullEval arg11
+expected11 = IntT 5
+test11 = TestCase (assertEqual "11. Testing projection from a pair with an unevaluated component" result11 expected11)
+
+-- Test 12: Let binding with a reducible expression
+-- let val x = 3 + 4 in x evaluates to 3 + 4
+arg12 = LetVal "x" (BinOp Add (IntT 3) (IntT 4)) (Var "x")
+result12 = fullEval arg12
+expected12 = IntT 7  -- 3 + 4
+test12 = TestCase (assertEqual "12. Testing LetVal with reducible expression" result12 expected12)
+
+-- Test 13: Let binding with an already evaluated value
+-- let val x = 5 in x + 10 evaluates to 15 
+arg13 = LetVal "x" (IntT 5) (BinOp Add (Var "x") (IntT 10))
+result13 = fullEval arg13
+expected13 = IntT 15  -- 5 + 10
+test13 = TestCase (assertEqual "13. Testing LetVal with already evaluated value" result13 expected13)
+
+-- Test 14: Let binding with a variable (variable substitution should not occur)
+-- let val x = y in x + 3
+arg14 = LetVal "x" (Var "y") (BinOp Add (Var "x") (IntT 3))
+result14 = fullEval arg14
+expected14 = LetVal "x" (Var "y") (BinOp Add (Var "x") (IntT 3))  -- Not evaluated yet, because of the variable
+test14 = TestCase (assertEqual "14. Testing LetVal with a variable not evaluated" result14 expected14)
+
+-- Test 15: Let binding with a nested expression that requires multiple steps to reduce
+-- let val x = (λy.y + 2)(3) in x * 4 evaluates to (3 + 2) * 4
+arg15 = LetVal "x" (App (Lam "y" (BinOp Add (Var "y") (IntT 2))) (IntT 3)) (BinOp Mul (Var "x") (IntT 4))
+result15 = fullEval arg15
+expected15 = IntT 20  -- (3 + 2) * 4
+test15 = TestCase (assertEqual "15. Testing LetVal with a nested expression" result15 expected15)
+
+-- Test 16: IfTrue condition (should evaluate e2)
+arg16 = IfThenElse TrueT (IntT 5) (IntT 10)
+result16 = fullEval arg16
+expected16 = IntT 5  -- Condition is True, so e2 should be evaluated
+test16 = TestCase (assertEqual "16. Testing IfThenElse with True condition" result16 expected16)
+
+-- Test 17: IfFalse condition (should evaluate e3)
+arg17 = IfThenElse FalseT (IntT 5) (IntT 10)
+result17 = fullEval arg17
+expected17 = IntT 10  -- Condition is False, so e3 should be evaluated
+test17 = TestCase (assertEqual "17. Testing IfThenElse with False condition" result17 expected17)
+
+-- Test 18: If reducible condition (should reduce the condition first)
+arg18 = IfThenElse (BinOp Add (IntT 3) (IntT 2)) (IntT 5) (IntT 10)
+result18 = fullEval arg18
+expected18 = IntT 5  -- Condition is reducible to 5 (True), so e2 should be evaluated
+test18 = TestCase (assertEqual "18. Testing IfThenElse with reducible condition" result18 expected18)
+
+-- Test 19: If reducible condition leading to FalseT (should evaluate e3)
+arg19 = IfThenElse (BinOp Sub (IntT 3) (IntT 4)) (IntT 5) (IntT 10)
+result19 = fullEval arg19
+expected19 = IntT 10  -- Condition is reducible to FalseT (3 - 4), so e3 should be evaluated
+test19 = TestCase (assertEqual "19. Testing IfThenElse with reducible condition to False" result19 expected19)
+
+-- Test 20: Nested IfThenElse (should evaluate based on the first condition)
+arg20 = IfThenElse TrueT (IfThenElse FalseT (IntT 1) (IntT 2)) (IntT 3)
+result20 = fullEval arg20
+expected20 = IntT 2  -- Outer condition is True, so we evaluate the inner IfThenElse (FalseT, thus 2)
+test20 = TestCase (assertEqual "20. Testing nested IfThenElse" result20 expected20)
 
 tests = TestList [
                     test0,
@@ -57,7 +144,17 @@ tests = TestList [
                     test3,
                     test4,
                     test5, 
-                    test6
+                    test6,
+                    test7,
+                    test8,
+                    test9,
+                    test10,
+                    test12,
+                    test13, 
+                    test14,
+                    test15,
+                    test16,
+                    test17
         ]
 
 main :: IO ()

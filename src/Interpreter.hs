@@ -27,6 +27,17 @@ eval (BinOp op e1 e2) =
                         Div -> IntT (n1 `div` n2)
                 e2' -> BinOp op (IntT n1) e2' 
         e1' -> BinOp op e1' e2 
+eval (BinPred pred e1 e2) =
+    case eval e1 of 
+        IntT n1 ->  
+            case eval e2 of 
+                IntT n2 -> 
+                    case pred of 
+                        Eq -> if n1 == n2 then TrueT else FalseT 
+                        LessThan ->  if n1 <= n2 then TrueT else FalseT 
+                        GreaterThan -> if n2 <= n1 then TrueT else FalseT 
+                e2' -> BinPred pred (IntT n1) e2' 
+        e1' -> BinPred pred e1' e2 
 eval (Lam x t) = Lam x t
 eval (App e1 e2) = 
     case eval e1 of
@@ -55,6 +66,15 @@ eval (Case e x1 e1 x2 e2) =
         InL v1 | isValue v1 -> substitute e1 x1 v1
         InR v2 | isValue v2 -> substitute e2 x2 v2
         e' -> Case e' x1 e1 x2 e2
+eval (LetVal x e1 e2) =
+    case eval e1 of 
+        v1 | isValue v1 -> substitute e2 x e1
+        e1' -> LetVal x e1' e2
+eval (IfThenElse b e1 e2) =
+    case eval b of 
+        TrueT -> e1 
+        FalseT -> e2 
+        b' -> IfThenElse b' e1 e2
 
 isValue :: Term -> Bool
 isValue (IntT _) = True 
