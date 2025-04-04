@@ -19,6 +19,7 @@ substitute (Fst e) x e' = Fst (substitute e x e')
 substitute (Snd e) x e' = Snd (substitute e x e')
 substitute (InL e) x e' = InL (substitute e x e')
 substitute (InR e) x e' = InR (substitute e x e')
+substitute (IfThenElse b e1 e2) x e' = IfThenElse (substitute b x e') (substitute e1 x e') (substitute e2 x e') 
 substitute (Case e x m y n) v s =
     let e' = substitute e v s
         (x', m') = 

@@ -120,13 +120,13 @@ expected17 = IntT 10  -- Condition is False, so e3 should be evaluated
 test17 = TestCase (assertEqual "17. Testing IfThenElse with False condition" result17 expected17)
 
 -- Test 18: If reducible condition (should reduce the condition first)
-arg18 = IfThenElse (BinOp Add (IntT 3) (IntT 2)) (IntT 5) (IntT 10)
+arg18 = IfThenElse (BinPred GreaterThan (IntT 3) (IntT 2)) (IntT 5) (IntT 10)
 result18 = fullEval arg18
 expected18 = IntT 5  -- Condition is reducible to 5 (True), so e2 should be evaluated
 test18 = TestCase (assertEqual "18. Testing IfThenElse with reducible condition" result18 expected18)
 
 -- Test 19: If reducible condition leading to FalseT (should evaluate e3)
-arg19 = IfThenElse (BinOp Sub (IntT 3) (IntT 4)) (IntT 5) (IntT 10)
+arg19 = IfThenElse (BinPred GreaterThan (IntT 3) (IntT 4)) (IntT 5) (IntT 10)
 result19 = fullEval arg19
 expected19 = IntT 10  -- Condition is reducible to FalseT (3 - 4), so e3 should be evaluated
 test19 = TestCase (assertEqual "19. Testing IfThenElse with reducible condition to False" result19 expected19)
@@ -136,6 +136,25 @@ arg20 = IfThenElse TrueT (IfThenElse FalseT (IntT 1) (IntT 2)) (IntT 3)
 result20 = fullEval arg20
 expected20 = IntT 2  -- Outer condition is True, so we evaluate the inner IfThenElse (FalseT, thus 2)
 test20 = TestCase (assertEqual "20. Testing nested IfThenElse" result20 expected20)
+
+-- Test 21: Function application to a value (simple case)
+arg21 = App (Fun "f" "x" (BinOp Add (Var "x") (IntT 2))) (IntT 3)
+result21 = fullEval arg21
+expected21 = IntT 5  -- (3 + 2)
+test21 = TestCase (assertEqual "21. Testing function application to a value" result21 expected21)
+
+-- Test 22: Function application to a reducible expression
+arg22 = App (Fun "f" "x" (BinOp Add (Var "x") (IntT 2))) (BinOp Mul (IntT 2) (IntT 3))
+result22 = fullEval arg22
+expected22 = IntT 8  -- (2 * 3) + 2 = 6 + 2
+test22 = TestCase (assertEqual "22. Testing function application to a reducible expression" result22 expected22)
+
+-- Test 23: Factorial of 5
+arg23 = App (Fun "fact" "n" (IfThenElse (BinPred LessThan (Var "n") (IntT 1)) (IntT 1) (BinOp Mul (Var "n") (App (Var "fact") (BinOp Sub (Var "n") (IntT 1)))))) (IntT 5)
+result23 = fullEval arg23
+expected23 = IntT 120  -- 5 * 4 * 3 * 2 * 1 = 120
+test23 = TestCase (assertEqual "23. Testing factorial function" result23 expected23)
+
 
 tests = TestList [
                     test0,
@@ -154,7 +173,13 @@ tests = TestList [
                     test14,
                     test15,
                     test16,
-                    test17
+                    test17,
+                    test18,
+                    test19,
+                    test20, 
+                    test21,
+                    test22,
+                    test23
         ]
 
 main :: IO ()

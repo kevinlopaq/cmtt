@@ -7,7 +7,7 @@ fullEval :: Term -> Term
 fullEval t =
     let t' = eval t 
     in if t' == t then t else fullEval t' 
-
+    
 eval :: Term -> Term 
 eval Unit = Unit
 eval (Var x) = Var x
@@ -39,6 +39,11 @@ eval (BinPred pred e1 e2) =
                 e2' -> BinPred pred (IntT n1) e2' 
         e1' -> BinPred pred e1' e2 
 eval (Lam x t) = Lam x t
+eval (Fun f x e) = Fun f x e 
+eval (App (Fun f x e1) e2) =
+    case eval e2 of 
+        v2 | isValue v2 -> substitute (substitute e1 x v2) f (Fun f x e1)
+        e2' -> App (Fun f x e1) e2'
 eval (App e1 e2) = 
     case eval e1 of
         Lam x body -> 
