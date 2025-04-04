@@ -13,7 +13,6 @@ eqCtx ctx1 ctx2 = length ctx1 == length ctx2 && all eqTypes (zip (map snd ctx1) 
         eqTypes (_, UnspecCtxTy) = True
         eqTypes (t1, t2) = t1 == t2
 
-
 data Type 
     = BaseTy String
     | UnitTy
