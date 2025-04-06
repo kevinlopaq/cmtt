@@ -2,6 +2,7 @@ module Interpreter where
 
 import Syntax 
 import Substitution
+import ModSubstitution
 
 fullEval :: Term -> Term 
 fullEval t =
@@ -80,6 +81,13 @@ eval (IfThenElse b e1 e2) =
         TrueT -> e1 
         FalseT -> e2 
         b' -> IfThenElse b' e1 e2
+eval (Box ctx e) = Box ctx e
+eval (LetBox u e1 e2) =
+    case eval e1 of 
+        Box ctx e3 -> modSubstitute e2 u ctx e3 
+        e1' -> LetBox u e1' e2
+eval (Ann e ty) = eval e
+
 
 isValue :: Term -> Bool
 isValue (IntT _) = True 

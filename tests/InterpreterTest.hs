@@ -155,6 +155,11 @@ result23 = fullEval arg23
 expected23 = IntT 120  -- 5 * 4 * 3 * 2 * 1 = 120
 test23 = TestCase (assertEqual "23. Testing factorial function" result23 expected23)
 
+-- Test 24: let box u = box x:int, y:int. (x + y) in u⟨x→5, y→2⟩ should evaluate to 5 + 2
+arg24 = LetBox "u" (Ann (Box [("x", IntTy), ("y", IntTy)] (BinOp Add (Var "x") (Var "y"))) (BoxTy [("x", IntTy), ("y", IntTy)] IntTy)) (ModVar "u" [("x", IntT 5), ("y", IntT 2)])
+result24 = fullEval arg24
+expected24 = IntT 7
+test24 = TestCase (assertEqual "24. Testing beta reduction for box" result24 expected24)
 
 tests = TestList [
                     test0,
@@ -179,7 +184,8 @@ tests = TestList [
                     test20, 
                     test21,
                     test22,
-                    test23
+                    test23,
+                    test24
         ]
 
 main :: IO ()
