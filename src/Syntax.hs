@@ -70,6 +70,66 @@ data Pred
     | GreaterThan
     deriving (Show, Eq)
 
+-- Pretty print a type
+prettyPrintType :: Type -> String
+prettyPrintType (BaseTy s)      = s
+prettyPrintType UnitTy          = "unit"
+prettyPrintType Empty           = "empty"
+prettyPrintType IntTy           = "int"
+prettyPrintType BoolTy          = "bool"
+prettyPrintType (Arrow t1 t2)   = "(" ++ prettyPrintType t1 ++ " → " ++ prettyPrintType t2 ++ ")"
+prettyPrintType (Prod t1 t2)    = "(" ++ prettyPrintType t1 ++ " × " ++ prettyPrintType t2 ++ ")"
+prettyPrintType (Sum t1 t2)     = "(" ++ prettyPrintType t1 ++ " + " ++ prettyPrintType t2 ++ ")"
+prettyPrintType (BoxTy ctx t)   = "[" ++ prettyPrintCtx ctx ++ "]" ++ prettyPrintType t
+prettyPrintType (DiaTy ctx t)   = "⟨" ++ prettyPrintCtx ctx ++ "⟩" ++ prettyPrintType t
+--prettyPrintType UnspecCtxTy     =
+
+-- Pretty print a context
+prettyPrintCtx :: Ctx -> String
+prettyPrintCtx [] = ""
+prettyPrintCtx ctx =  unwords [x ++ ":" ++ prettyPrintType t | (x, t) <- ctx]
+
+-- Pretty print a Term
+prettyPrintTerm :: Term -> String
+prettyPrintTerm Unit                = "()"
+prettyPrintTerm (Var x)             = x
+prettyPrintTerm (ModVar v _)        = v -- Expand substitution here
+prettyPrintTerm FalseT              = "false"
+prettyPrintTerm TrueT               = "true"
+prettyPrintTerm (IntT n)            = show n
+prettyPrintTerm (App t1 t2)         = "(" ++ prettyPrintTerm t1 ++ " " ++ prettyPrintTerm t2 ++ ")"
+prettyPrintTerm (Lam x t)           = "λ" ++ x ++ ". " ++ prettyPrintTerm t
+prettyPrintTerm (Pair t1 t2)        = "(" ++ prettyPrintTerm t1 ++ ", " ++ prettyPrintTerm t2 ++ ")"
+prettyPrintTerm (Fst t)             = "fst " ++ prettyPrintTerm t
+prettyPrintTerm (Snd t)             = "snd " ++ prettyPrintTerm t
+prettyPrintTerm (InL t)             = "inl " ++ prettyPrintTerm t
+prettyPrintTerm (InR t)             = "inr " ++ prettyPrintTerm t
+prettyPrintTerm (Case t x1 t1 x2 t2) = "case " ++ prettyPrintTerm t ++ " of " ++ x1 ++ " -> " ++ prettyPrintTerm t1 ++ " | " ++ x2 ++ " -> " ++ prettyPrintTerm t2
+prettyPrintTerm (BinOp op t1 t2)    = "(" ++ prettyPrintTerm t1 ++ " " ++ prettyPrintOp op ++ " " ++ prettyPrintTerm t2 ++ ")"
+prettyPrintTerm (BinPred pred t1 t2) = "(" ++ prettyPrintTerm t1 ++ " " ++ prettyPrintPred pred ++ " " ++ prettyPrintTerm t2 ++ ")"
+prettyPrintTerm (LetVal x t1 t2)    = "let " ++ x ++ " = " ++ prettyPrintTerm t1 ++ " in " ++ prettyPrintTerm t2
+prettyPrintTerm (IfThenElse t1 t2 t3) = "if " ++ prettyPrintTerm t1 ++ " then " ++ prettyPrintTerm t2 ++ " else " ++ prettyPrintTerm t3
+prettyPrintTerm (Fun x y t)         = "fun " ++ x ++ " " ++ y ++ " -> " ++ prettyPrintTerm t
+prettyPrintTerm (Box ctx t)         = "box " ++ prettyPrintCtx ctx ++ prettyPrintTerm t
+prettyPrintTerm (LetBox x t1 t2)    = "let box " ++ x ++ " = " ++ prettyPrintTerm t1 ++ " in " ++ prettyPrintTerm t2
+prettyPrintTerm (Do t)              = "do " ++ prettyPrintTerm t
+prettyPrintTerm (Ret _ t)           = "ret " ++ prettyPrintTerm t
+prettyPrintTerm (Seq ctx x t1 t2)   = prettyPrintCtx ctx ++ ", " ++ x ++ " ← " ++ prettyPrintTerm t1 ++ "; " ++ prettyPrintTerm t2
+prettyPrintTerm (Ann t ty)          = prettyPrintTerm t ++ " : " ++ prettyPrintType ty
+
+-- Pretty print Binary operation (for BinOp)
+prettyPrintOp :: Op -> String
+prettyPrintOp Add    = "+"
+prettyPrintOp Sub    = "-"
+prettyPrintOp Mul    = "*"
+prettyPrintOp Div    = "/"
+
+-- Pretty print Binary predicate (for BinPred)
+prettyPrintPred :: Pred -> String
+prettyPrintPred Eq        = "=="
+prettyPrintPred LessThan  = "<"
+prettyPrintPred GreaterThan = ">"
+
 fv :: Term -> Set String
 fv Unit = empty
 fv TrueT = empty 

@@ -1,0 +1,2 @@
+cabal run cmtt -- typechecker --file examples/4.cmtt
+cabal run cmtt -- parse --file examples/4.cmtt

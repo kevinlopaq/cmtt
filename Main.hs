@@ -1,10 +1,12 @@
 module Main where
 
-import Options.Applicative
+
+import System.Directory (doesFileExist)
 import System.IO
+import Syntax
 import Parser
 import Typechecker
-
+import Interpreter
 
 banner :: String
 banner = unlines
@@ -19,44 +21,54 @@ banner = unlines
     , "  ♢  ☐  Ψ  ♢  ☐  Ψ  ♢  ☐  Ψ  "
     ]
 
-data Command = Parse FilePath
-            |  TypeCheck FilePath
-            |  Eval FilePath
-
-commandParser :: Parser Command
-commandParser = subparser
-    (   command "parse" (info (Parse <$> fileOption) (progDesc "Parse a program"))
-    <>  command "typecheck" (info (TypeCheck <$> fileOption) (progDesc "Typecheck a program"))
-    <>  command "eval" (info (Eval <$> fileOption) (progDesc "Interpret a program"))
-    )
-    where 
-        fileOption = strOption (long "file" <> short 'f' <> metavar "FILE" <> help "Input file")
+handleFile :: String -> (String -> IO ()) -> IO ()
+handleFile file action = do
+    exists <- doesFileExist file
+    if not exists
+        then putStrLn $ "File not found: " ++ file
+        else do
+            contents <- readFile file
+            action contents
 
 main :: IO ()
-main = do
+main = do 
     putStrLn banner 
-    cmd <- execParser (info (commandParser <**> helper) (fullDesc <> progDesc "CMTT Interpreter"))
-    case cmd of
-        Parse file -> do
-            contents <- readFile file
-            putStrLn $ "Parsing: " ++ file 
-            putStrLn $ contents
-            print $ parseString contents
+    replLoop
 
-        TypeCheck file -> do
-            contents <- readFile file
-            putStrLn $ "Typechecking: " ++ file
-            putStrLn $ contents
-            ast <- return (parseString contents)
-            case (synth0 ast) of
-                Right ty -> putStrLn $ "Yup. Program typechecks"
-                Left err -> putStrLn $ "Typechecking error: " ++ show(err)
+replLoop :: IO ()
+replLoop = do
+    putStr "λ> "
+    hFlush stdout
+    input <- getLine
+    case words input of
+        ("parse":file:_) -> do
+            handleFile file $ \contents -> do
+                putStrLn $ "Parsing: " ++ file
+                print $ parseString contents
+            replLoop
 
---        Eval file -> do
---            contents <- readFile file
---            putStrLn $ "Evaluating: " ++ file
---            case L.parse contents of
---                Right ast -> case L.typeCheck ast of
---                Right _ -> print $ L.eval ast
---                Left err -> putStrLn $ "Type error: " ++ err
---                Left err -> putStrLn $ "Parse error: " ++ err
+        ("typecheck":file:_) -> do
+            handleFile file $ \contents -> do
+                putStrLn $ "Typechecking: " ++ file
+                putStrLn contents
+                let ast = parseString contents
+                case synth0 ast of
+                    Right _ -> putStrLn "Yup. Program typechecks"
+                    Left err -> putStrLn $ "Typechecking error: " ++ show err
+            replLoop
+
+        ("run":file:_) -> do
+            handleFile file $ \contents -> do
+                putStrLn $ "Evaluating: " ++ file
+                putStrLn contents
+                let ast = parseString contents
+                case synth0 ast of
+                    Right _ -> putStrLn . prettyPrintTerm $ fullEval ast
+                    Left err -> putStrLn $ "Typechecking error: " ++ show err
+            replLoop
+
+        ("quit":_) -> putStrLn "Goodbye!"
+
+        _ -> do
+            putStrLn "Unknown command. Try: parse <file>, typecheck <file>, eval <file>, or quit"
+            replLoop
