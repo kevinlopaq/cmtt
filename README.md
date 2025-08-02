@@ -47,7 +47,9 @@ Inside the REPL, the following commands are available:
 ## References and Related Work
 
 > [Nanevski, A., Pfenning, F., & Pientka, B. (2008). *Contextual Modal Type Theory*](https://software.imdea.org/~aleks/papers/cmtt/cmtt.pdf).  
+
 > [Pfenning, F., & Davies, R. (2001). *A Judgmental Reconstruction of Modal Logic*](https://www.cs.cmu.edu/~fp/papers/mscs00.pdf).  
+
 > [mtt-lang: An implementation of Pfenning and Davies' modal type theory](https://github.com/mtt-lang).
 
 ## License
