@@ -41,7 +41,7 @@ Inside the REPL, the following commands are available:
 ## Directory Overview
 
 - `src/` — Parser, typechecker, interpreter  
-- `app/Main.hs` — REPL entry point  
+- `Main.hs` — REPL entry point  
 - `examples/` — Sample programs  
 
 ## References and Related Work
